@@ -123,8 +123,8 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
       </section>
 
       {/* Filter bar */}
-      <section className="flex flex-wrap items-center gap-3 mb-6 pb-6 border-b border-[#EAEAEA]">
-        <div className="relative flex-shrink-0 w-[260px]">
+      <section className="flex items-center gap-3 mb-6 pb-6 border-b border-[#EAEAEA]">
+        <div className="relative flex-shrink-0 w-[200px]">
           <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 stroke-[#999]" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round">
             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -136,7 +136,7 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
             className="w-full bg-white border border-[#EAEAEA] rounded-lg py-[7px] pl-9 pr-3 text-[0.85rem] text-[#171717] placeholder-[#999] outline-none focus:border-black transition-colors"
           />
         </div>
-        <div className="flex-1">
+        <div className="min-w-0 flex-1 overflow-x-auto scrollbar-hide">
           <CategoryFilter selected={selectedCategory} onSelect={setSelectedCategory} counts={categoryCounts} />
         </div>
       </section>
