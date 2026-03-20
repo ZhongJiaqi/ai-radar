@@ -78,6 +78,24 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     home_url: 'https://x.ai/blog',
     priority: 9,
   },
+  {
+    slug: 'google-gemini-blog',
+    name: 'Google Gemini Blog',
+    type: 'rss',
+    category: 'official',
+    url: 'https://blog.google/products/gemini/rss/',
+    home_url: 'https://blog.google/products/gemini',
+    priority: 9,
+  },
+  {
+    slug: 'azure-ai-blog',
+    name: 'Azure AI Blog',
+    type: 'rss',
+    category: 'official',
+    url: 'https://azure.microsoft.com/en-us/blog/tag/ai/feed/',
+    home_url: 'https://azure.microsoft.com/en-us/blog/tag/ai',
+    priority: 8,
+  },
 
   // ── 国内媒体 (2) ──
   {
@@ -156,16 +174,6 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     home_url: 'https://hamel.dev',
     priority: 8,
   },
-  {
-    slug: 'langchain-blog',
-    name: 'LangChain Blog',
-    type: 'rss',
-    category: 'person',
-    url: 'https://blog.langchain.dev/rss/',
-    home_url: 'https://blog.langchain.dev',
-    priority: 8,
-  },
-
   // ── Person — Twitter (require TWITTER_BEARER_TOKEN) (3) ──
   {
     slug: 'twitter-sama',
@@ -251,6 +259,33 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     category: 'person',
     url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCgPxR0M-aN3bJMGqgLXlS0g',
     home_url: 'https://www.youtube.com/@SouthParkCommons',
+    priority: 6,
+  },
+  {
+    slug: 'yt-lennys-podcast',
+    name: "Lenny's Podcast (YouTube)",
+    type: 'rss',
+    category: 'person',
+    url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UC6t1O76G0jYXOAoYCm153dA',
+    home_url: 'https://www.youtube.com/@LennysPodcast',
+    priority: 7,
+  },
+  {
+    slug: 'yt-peteryang',
+    name: 'Peter Yang (YouTube)',
+    type: 'rss',
+    category: 'person',
+    url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCmINSD_-7jm6yF7aapiyz4A',
+    home_url: 'https://www.youtube.com/@peterhyang',
+    priority: 7,
+  },
+  {
+    slug: 'yt-unsupervised',
+    name: 'Unsupervised Learning (YouTube)',
+    type: 'rss',
+    category: 'person',
+    url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCE6h4Tz0RP34akUoXd_MwzQ',
+    home_url: 'https://www.youtube.com/@UnsupervisedLearning',
     priority: 6,
   },
 
