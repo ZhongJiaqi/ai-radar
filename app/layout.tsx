@@ -3,6 +3,7 @@ import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
 import Link from 'next/link'
 import './globals.css'
 import NavClock from '@/components/NavClock'
+import NavLinks from '@/components/NavLinks'
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ['latin'],
@@ -69,23 +70,7 @@ export default function RootLayout({
                 </span>
               </div>
             </Link>
-            <ul className="hidden md:flex items-center gap-8">
-              <li>
-                <Link href="/" className="text-[0.9rem] font-medium text-[#666] hover:text-black transition-colors">
-                  AI News
-                </Link>
-              </li>
-              <li>
-                <Link href="/jobs" className="text-[0.9rem] font-medium text-[#666] hover:text-black transition-colors">
-                  AI Jobs
-                </Link>
-              </li>
-              <li>
-                <Link href="/investment" className="text-[0.9rem] font-medium text-[#666] hover:text-black transition-colors">
-                  AI Investment
-                </Link>
-              </li>
-            </ul>
+            <NavLinks />
             <NavClock />
           </div>
         </nav>

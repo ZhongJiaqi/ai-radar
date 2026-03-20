@@ -110,16 +110,21 @@ async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<st
 
   const response = await anthropic.messages.create({
     model: SONNET_MODEL,
-    max_tokens: 600,
+    max_tokens: 1000,
     messages: [
       {
         role: 'user',
-        content: `基于以下今日 AI 资讯，用3-5句话写一段执行摘要（Executive Summary），
-用中文，面向 AI 产品经理和开发者，点出最重要的趋势和信号：
+        content: `基于以下今日 AI 资讯，写一段面向 AI 从业者的每日深度分析总结，用中文。
+
+要求：
+- 概括今天的整体趋势和最值得关注的方向
+- 分析这些事件背后的深层含义、行业影响和未来走向
+- 总字数严格控制在300字以内
+- 直接输出一段连贯的分析文字，不要分条列举，不要加标题或 emoji
 
 ${articleList}
 
-直接输出段落文字，不要加标题，不要分点列举。`,
+直接输出内容。`,
       },
     ],
   })

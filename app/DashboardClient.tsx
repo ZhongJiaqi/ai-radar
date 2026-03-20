@@ -39,7 +39,7 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
   const [sortMode, setSortMode] = useState<SortMode>('importance')
   const [minScore, setMinScore] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const PAGE_SIZE = 15
   // Category counts
@@ -98,7 +98,9 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
   // Auto-expand top article on page 1 when in importance sort
   useEffect(() => {
     if (safePage === 1 && sortMode === 'importance' && paged.length > 0) {
-      setExpandedId(paged[0].id)
+      setExpandedIds(new Set([paged[0].id]))
+    } else {
+      setExpandedIds(new Set())
     }
   }, [filtered])
 
@@ -106,14 +108,14 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
     <div>
       {/* Today's highlights card */}
       {latestDigest?.summary && (
-        <section className="mb-6 border border-[#EAEAEA] rounded-lg overflow-hidden">
-          <div className="px-4 py-3 bg-[#FAFAFA]">
-            <span className="text-sm font-semibold text-[#171717]">📌 今日要点</span>
-          </div>
-          <div className="px-4 py-3 text-[0.85rem] leading-relaxed text-[#444] whitespace-pre-line">
-            {latestDigest.summary}
-          </div>
-        </section>
+          <section className="mb-6 border border-[#EAEAEA] rounded-lg overflow-hidden">
+            <div className="px-4 py-3 bg-[#FAFAFA]">
+              <span className="text-lg font-semibold text-[#171717]">📌 今日要点</span>
+            </div>
+            <div className="px-4 py-3">
+              <p className="text-sm leading-relaxed text-[#444] whitespace-pre-line">{latestDigest.summary}</p>
+            </div>
+          </section>
       )}
 
       {/* Filter bar */}
@@ -192,7 +194,7 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
       ) : (
         <section className="flex flex-col">
           {paged.map((a, i) => {
-            const isExpanded = expandedId === a.id
+            const isExpanded = expandedIds.has(a.id)
             const time = a.published_at ? getTimeAgo(new Date(a.published_at)) : ''
             return (
               <div
@@ -201,7 +203,12 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
                   isExpanded ? 'bg-[#FAFAFA]' : 'hover:bg-[#F5F5F5]'
                 } ${i === 0 ? 'border-t border-t-[#F0F0F0]' : ''}`}
                 style={{ animationDelay: `${i * 0.03}s` }}
-                onClick={() => setExpandedId(isExpanded ? null : a.id)}
+                onClick={() => setExpandedIds(prev => {
+                  const next = new Set(prev)
+                  if (next.has(a.id)) next.delete(a.id)
+                  else next.add(a.id)
+                  return next
+                })}
               >
                 <div className="grid grid-cols-[48px_1fr_auto_auto_auto] items-center gap-4 px-4 py-3 max-sm:grid-cols-[40px_1fr_auto] max-sm:gap-2.5">
                   {/* Score */}
@@ -270,14 +277,14 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
             </span>
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => { setCurrentPage(1); setExpandedId(null) }}
+                onClick={() => { setCurrentPage(1); setExpandedIds(new Set()) }}
                 disabled={safePage <= 1}
                 className="w-7 h-7 flex items-center justify-center rounded border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
                 «
               </button>
               <button
-                onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); setExpandedId(null) }}
+                onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); setExpandedIds(new Set()) }}
                 disabled={safePage <= 1}
                 className="w-7 h-7 flex items-center justify-center rounded border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
@@ -292,21 +299,21 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
                   value={safePage}
                   onChange={e => {
                     const v = parseInt(e.target.value)
-                    if (v >= 1 && v <= totalPages) { setCurrentPage(v); setExpandedId(null) }
+                    if (v >= 1 && v <= totalPages) { setCurrentPage(v); setExpandedIds(new Set()) }
                   }}
                   className="w-10 h-7 text-center font-mono text-[0.78rem] border border-[#EAEAEA] rounded outline-none focus:border-black transition-colors"
                 />
                 <span className="text-[#666]">/ {totalPages} 页</span>
               </div>
               <button
-                onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); setExpandedId(null) }}
+                onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); setExpandedIds(new Set()) }}
                 disabled={safePage >= totalPages}
                 className="w-7 h-7 flex items-center justify-center rounded border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
                 ›
               </button>
               <button
-                onClick={() => { setCurrentPage(totalPages); setExpandedId(null) }}
+                onClick={() => { setCurrentPage(totalPages); setExpandedIds(new Set()) }}
                 disabled={safePage >= totalPages}
                 className="w-7 h-7 flex items-center justify-center rounded border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
