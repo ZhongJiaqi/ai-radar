@@ -110,7 +110,7 @@ async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<st
 
   const response = await anthropic.messages.create({
     model: SONNET_MODEL,
-    max_tokens: 500,
+    max_tokens: 350,
     messages: [
       {
         role: 'user',
