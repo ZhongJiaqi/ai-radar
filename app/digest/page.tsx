@@ -24,9 +24,9 @@ export default async function DigestListPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
-        <a href="/" className="text-sm text-[#666] hover:text-[#171717] transition-colors">
+        <Link href="/" className="text-sm text-[#666] hover:text-[#171717] transition-colors">
           ← 返回资讯列表
-        </a>
+        </Link>
         <h1 className="text-2xl font-bold text-[#171717] mt-3">每日简报归档</h1>
         <p className="text-sm text-[#999] mt-1">
           每天 8:00 AM 自动生成，覆盖过去 24 小时 AI 动态

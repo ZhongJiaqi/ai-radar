@@ -6,7 +6,7 @@ export const anthropic = new Anthropic({
 })
 
 // Model selection
-// Haiku 3.5: fast + cheap for article processing ($0.80/$4 per 1M tokens)
-// Sonnet 4: deeper analysis for daily digest ($3/$15 per 1M tokens)
+// Haiku 4.5: fast + cheap for article processing
+// Sonnet 4.6: deeper analysis for daily digest
 export const HAIKU_MODEL = 'claude-haiku-4-5-20251001'
 export const SONNET_MODEL = 'claude-sonnet-4-6'

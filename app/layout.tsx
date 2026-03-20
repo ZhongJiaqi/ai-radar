@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
+import Link from 'next/link'
 import './globals.css'
 import NavClock from '@/components/NavClock'
 
@@ -55,24 +56,24 @@ export default function RootLayout({
       >
         <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#EAEAEA]">
           <div className="max-w-[1200px] mx-auto px-6 h-14 flex items-center justify-between">
-            <a href="/" className="flex items-center gap-2.5">
+            <Link href="/" className="flex items-center gap-2.5">
               <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
                 <path d="M12 2L2 19.5h20L12 2z" fill="#000" />
               </svg>
               <span className="font-mono font-bold text-sm tracking-[2px] text-black">
                 AI RADAR
               </span>
-            </a>
+            </Link>
             <ul className="hidden md:flex items-center gap-6">
               <li>
-                <a href="/" className="text-sm text-[#666] hover:text-black transition-colors">
+                <Link href="/" className="text-sm text-[#666] hover:text-black transition-colors">
                   今日速递
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/digest" className="text-sm text-[#666] hover:text-black transition-colors">
+                <Link href="/digest" className="text-sm text-[#666] hover:text-black transition-colors">
                   每日简报
-                </a>
+                </Link>
               </li>
             </ul>
             <NavClock />

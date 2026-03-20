@@ -2,29 +2,28 @@
 
 ## Build And Test
 
-- Install: `pnpm install`
-- Dev: `pnpm dev`
-- Test: `pnpm test`
-- Typecheck: `pnpm typecheck`
-- Lint: `pnpm lint`
+- Install: `npm install`
+- Dev: `npm run dev`
+- Build: `npm run build`
+- Lint: `npm run lint`
 
 ## Architecture Boundaries
 
-- HTTP handlers live in `src/http/handlers/`
-- Domain logic lives in `src/domain/`
-- Do not put persistence logic in handlers
-- Shared types live in `src/contracts/`
+- Pages and API routes live in `app/`
+- Crawlers live in `lib/crawlers/`
+- LLM processing lives in `lib/processor/`
+- Shared types live in `lib/types.ts`
+- Supabase/Claude clients live in `lib/`
+- Standalone scripts live in `scripts/`
 
 ## Coding Conventions
 
 - Prefer pure functions in domain layer
 - Do not introduce new global state without explicit justification
-- Reuse existing error types from `src/errors/`
 
 ## Verification
 
-- Backend changes: `make test` + `make lint`
-- API changes: update contract tests under `tests/contracts/`
+- All changes: `npm run build` (includes typecheck + lint)
 - UI changes: capture before/after screenshots
 
 ## Build Any App

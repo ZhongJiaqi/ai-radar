@@ -159,7 +159,6 @@ async function fetchAllSources(): Promise<RawArticle[]> {
   return allResults
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function updateSourceHealth(supabase: any, slug: string, success: boolean, error?: string) {
   try {
     const now = new Date().toISOString()
@@ -196,7 +195,6 @@ async function updateSourceHealth(supabase: any, slug: string, success: boolean,
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function finishJob(supabase: any, jobId: string | undefined, status: string, success: number, fail: number, error?: string) {
   if (!jobId) return
   try {
@@ -212,7 +210,6 @@ async function finishJob(supabase: any, jobId: string | undefined, status: strin
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function upsertSources(supabase: any) {
   const sourcesData = SOURCE_CONFIGS.map(s => ({
     slug: s.slug,

@@ -1,5 +1,6 @@
 import { createPublicClient } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import DigestView from '@/components/DigestView'
 import type { Metadata } from 'next'
 
@@ -57,9 +58,9 @@ export default async function DigestPage({ params }: PageProps) {
       <div className="text-center py-20">
         <h2 className="text-lg text-[#666] mb-2">{date} 的简报尚未生成</h2>
         <p className="text-[0.85rem] text-[#999] mb-6">简报每天早上 8 点自动生成</p>
-        <a href="/" className="text-[0.85rem] text-[#0070F3] hover:underline">
+        <Link href="/" className="text-[0.85rem] text-[#0070F3] hover:underline">
           ← 返回今日资讯
-        </a>
+        </Link>
       </div>
     )
   }
@@ -67,12 +68,12 @@ export default async function DigestPage({ params }: PageProps) {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6 flex items-center justify-between">
-        <a href="/" className="text-sm text-[#666] hover:text-[#171717] transition-colors">
+        <Link href="/" className="text-sm text-[#666] hover:text-[#171717] transition-colors">
           ← 返回资讯列表
-        </a>
-        <a href="/digest" className="text-sm text-[#666] hover:text-[#171717] transition-colors">
+        </Link>
+        <Link href="/digest" className="text-sm text-[#666] hover:text-[#171717] transition-colors">
           查看归档 →
-        </a>
+        </Link>
       </div>
 
       <DigestView markdown={digest.content_md} date={date} />
