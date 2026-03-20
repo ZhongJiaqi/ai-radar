@@ -266,27 +266,62 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <section className="flex items-center justify-center gap-2 mt-6 pb-4">
-          <button
-            onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); setExpandedId(null) }}
-            disabled={safePage <= 1}
-            className="px-3 py-1.5 rounded text-xs font-medium border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          >
-            上一页
-          </button>
-          <span className="font-mono text-[0.78rem] text-[#666] px-2">
-            {safePage} / {totalPages}
-          </span>
-          <button
-            onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); setExpandedId(null) }}
-            disabled={safePage >= totalPages}
-            className="px-3 py-1.5 rounded text-xs font-medium border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          >
-            下一页
-          </button>
-        </section>
-      )}
+      {totalPages > 1 && (() => {
+        const startItem = (safePage - 1) * PAGE_SIZE + 1
+        const endItem = Math.min(safePage * PAGE_SIZE, filtered.length)
+        return (
+          <section className="flex items-center justify-between mt-6 pb-4 text-[0.78rem]">
+            <span className="text-[#999]">
+              显示 {startItem}-{endItem} 条，共 {filtered.length} 条
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => { setCurrentPage(1); setExpandedId(null) }}
+                disabled={safePage <= 1}
+                className="w-7 h-7 flex items-center justify-center rounded border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                «
+              </button>
+              <button
+                onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); setExpandedId(null) }}
+                disabled={safePage <= 1}
+                className="w-7 h-7 flex items-center justify-center rounded border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                ‹
+              </button>
+              <div className="flex items-center gap-1 px-1">
+                <span className="text-[#666]">第</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  value={safePage}
+                  onChange={e => {
+                    const v = parseInt(e.target.value)
+                    if (v >= 1 && v <= totalPages) { setCurrentPage(v); setExpandedId(null) }
+                  }}
+                  className="w-10 h-7 text-center font-mono text-[0.78rem] border border-[#EAEAEA] rounded outline-none focus:border-black transition-colors"
+                />
+                <span className="text-[#666]">/ {totalPages} 页</span>
+              </div>
+              <button
+                onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); setExpandedId(null) }}
+                disabled={safePage >= totalPages}
+                className="w-7 h-7 flex items-center justify-center rounded border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                ›
+              </button>
+              <button
+                onClick={() => { setCurrentPage(totalPages); setExpandedId(null) }}
+                disabled={safePage >= totalPages}
+                className="w-7 h-7 flex items-center justify-center rounded border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                »
+              </button>
+            </div>
+          </section>
+        )
+      })()}
     </div>
   )
 }
