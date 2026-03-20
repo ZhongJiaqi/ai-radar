@@ -96,7 +96,7 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
   // Reset to page 1 when filters change
   useEffect(() => { setCurrentPage(1) }, [selectedCategory, sourceFilter, minScore, searchQuery, sortMode])
 
-  const highSignal = articles.filter(a => a.importance_score >= 7).length
+  const highSignal = articles.filter(a => a.importance_score >= 8).length
   const avgScore = articles.length
     ? Math.round(articles.reduce((s, a) => s + a.importance_score, 0) / articles.length * 10) / 10
     : 0
