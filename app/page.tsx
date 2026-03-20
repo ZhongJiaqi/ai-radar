@@ -26,15 +26,34 @@ async function getArticles(): Promise<EnrichedArticle[]> {
   return data || []
 }
 
+function extractSummary(contentMd: string | null): string | null {
+  if (!contentMd) return null
+  const start = contentMd.indexOf('## 📌 今日总结')
+  if (start === -1) return null
+  const afterHeading = contentMd.indexOf('\n', start)
+  if (afterHeading === -1) return null
+  const nextSection = contentMd.indexOf('\n## ', afterHeading + 1)
+  const text = nextSection === -1
+    ? contentMd.slice(afterHeading + 1).trim()
+    : contentMd.slice(afterHeading + 1, nextSection).trim()
+  return text || null
+}
+
 async function getLatestDigest() {
   const supabase = createPublicClient()
   const { data } = await supabase
     .from('daily_digests')
-    .select('date, stats, generated_at')
+    .select('date, stats, generated_at, content_md')
     .order('date', { ascending: false })
     .limit(1)
     .single()
-  return data
+  if (!data) return null
+  return {
+    date: data.date,
+    stats: data.stats,
+    generated_at: data.generated_at,
+    summary: extractSummary(data.content_md),
+  }
 }
 
 export async function generateMetadata(): Promise<Metadata> {

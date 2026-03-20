@@ -12,6 +12,7 @@ interface Props {
     date: string
     stats: { total: number; avg_importance: number }
     generated_at: string
+    summary: string | null
   } | null
 }
 
@@ -58,8 +59,6 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
       .map(s => [s.slug, s.name] as [string, string])
       .sort((a, b) => a[1].localeCompare(b[1]))
   }, [articles])
-  const sourceCount = SOURCE_CONFIGS.length
-
   // Weighted score: importance 80% + source priority 20% (both on 10-point scale)
   const weightedScore = (a: EnrichedArticle) =>
     a.importance_score * 0.8 + a.source_priority * 0.2
@@ -96,31 +95,26 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
   // Reset to page 1 when filters change
   useEffect(() => { setCurrentPage(1) }, [selectedCategory, sourceFilter, minScore, searchQuery, sortMode])
 
-  const highSignal = articles.filter(a => a.importance_score >= 8).length
-  const avgScore = articles.length
-    ? Math.round(articles.reduce((s, a) => s + a.importance_score, 0) / articles.length * 10) / 10
-    : 0
+  // Auto-expand top article on page 1 when in importance sort
+  useEffect(() => {
+    if (safePage === 1 && sortMode === 'importance' && paged.length > 0) {
+      setExpandedId(paged[0].id)
+    }
+  }, [filtered])
+
   return (
     <div>
-      {/* Stats bar */}
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-[#EAEAEA] border border-[#EAEAEA] rounded-lg overflow-hidden mb-6">
-        <div className="bg-white p-4 flex items-baseline gap-2">
-          <span className="font-mono text-2xl font-bold text-black tracking-tight">{articles.length}</span>
-          <span className="text-[0.8rem] text-[#666]">今日抓取</span>
-        </div>
-        <div className="bg-white p-4 flex items-baseline gap-2">
-          <span className="font-mono text-2xl font-bold text-black tracking-tight">{sourceCount}</span>
-          <span className="text-[0.8rem] text-[#666]">监控源</span>
-        </div>
-        <div className="bg-white p-4 flex items-baseline gap-2">
-          <span className="font-mono text-2xl font-bold text-black tracking-tight">{highSignal}</span>
-          <span className="text-[0.8rem] text-[#666]">高信号</span>
-        </div>
-        <div className="bg-white p-4 flex items-baseline gap-2">
-          <span className="font-mono text-2xl font-bold text-black tracking-tight">{avgScore}</span>
-          <span className="text-[0.8rem] text-[#666]">平均分</span>
-        </div>
-      </section>
+      {/* Today's highlights card */}
+      {latestDigest?.summary && (
+        <section className="mb-6 border border-[#EAEAEA] rounded-lg overflow-hidden">
+          <div className="px-4 py-3 bg-[#FAFAFA]">
+            <span className="text-sm font-semibold text-[#171717]">📌 今日要点</span>
+          </div>
+          <div className="px-4 py-3 text-[0.85rem] leading-relaxed text-[#444] whitespace-pre-line">
+            {latestDigest.summary}
+          </div>
+        </section>
+      )}
 
       {/* Filter bar */}
       <section className="flex items-center gap-3 mb-6 pb-6 border-b border-[#EAEAEA]">

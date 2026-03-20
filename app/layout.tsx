@@ -55,24 +55,34 @@ export default function RootLayout({
         className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} font-body bg-white text-[#171717] min-h-screen`}
       >
         <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#EAEAEA]">
-          <div className="max-w-[1200px] mx-auto px-6 h-14 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2.5">
-              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+          <div className="max-w-[1200px] mx-auto px-6 h-20 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3.5">
+              <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8">
                 <path d="M12 2L2 19.5h20L12 2z" fill="#000" />
               </svg>
-              <span className="font-mono font-bold text-sm tracking-[2px] text-black">
-                AI RADAR
-              </span>
+              <div className="flex flex-col">
+                <span className="font-mono font-bold text-xl tracking-[2px] text-black leading-tight">
+                  AI RADAR
+                </span>
+                <span className="text-[0.7rem] text-[#999] leading-tight">
+                  Global AI insights, delivered daily
+                </span>
+              </div>
             </Link>
-            <ul className="hidden md:flex items-center gap-6">
+            <ul className="hidden md:flex items-center gap-8">
               <li>
-                <Link href="/" className="text-sm text-[#666] hover:text-black transition-colors">
-                  今日速递
+                <Link href="/" className="text-[0.9rem] font-medium text-[#666] hover:text-black transition-colors">
+                  AI News
                 </Link>
               </li>
               <li>
-                <Link href="/digest" className="text-sm text-[#666] hover:text-black transition-colors">
-                  每日简报
+                <Link href="/jobs" className="text-[0.9rem] font-medium text-[#666] hover:text-black transition-colors">
+                  AI Jobs
+                </Link>
+              </li>
+              <li>
+                <Link href="/investment" className="text-[0.9rem] font-medium text-[#666] hover:text-black transition-colors">
+                  AI Investment
                 </Link>
               </li>
             </ul>
@@ -83,7 +93,7 @@ export default function RootLayout({
           {children}
         </main>
         <footer className="text-center py-8 text-[#999] text-xs border-t border-[#EAEAEA] mt-8">
-          AI RADAR — 全球AI资讯聚合平台 · 36个信源 · 每日3分钟速递
+          AI RADAR — Global AI insights, delivered daily
         </footer>
       </body>
     </html>
