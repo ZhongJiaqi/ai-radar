@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import CategoryFilter from '@/components/CategoryFilter'
 import { categoryLabel } from '@/lib/i18n/categories'
 import { SOURCE_CONFIGS } from '@/lib/crawlers/sources'
@@ -39,6 +39,8 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
   const [minScore, setMinScore] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 15
   // Category counts
   const categoryCounts = useMemo(() => {
     const counts: Partial<Record<ContentCategory, number>> = {}
@@ -85,6 +87,14 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
     }
     return result
   }, [articles, selectedCategory, sourceFilter, minScore, searchQuery, sortMode])
+
+  // Reset page when filters change
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(currentPage, totalPages)
+  const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
+  // Reset to page 1 when filters change
+  useEffect(() => { setCurrentPage(1) }, [selectedCategory, sourceFilter, minScore, searchQuery, sortMode])
 
   const highSignal = articles.filter(a => a.importance_score >= 7).length
   const avgScore = articles.length
@@ -187,7 +197,7 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
         </div>
       ) : (
         <section className="flex flex-col">
-          {filtered.map((a, i) => {
+          {paged.map((a, i) => {
             const isExpanded = expandedId === a.id
             const time = a.published_at ? getTimeAgo(new Date(a.published_at)) : ''
             return (
@@ -252,6 +262,29 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
               </div>
             )
           })}
+        </section>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <section className="flex items-center justify-center gap-2 mt-6 pb-4">
+          <button
+            onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); setExpandedId(null) }}
+            disabled={safePage <= 1}
+            className="px-3 py-1.5 rounded text-xs font-medium border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          >
+            上一页
+          </button>
+          <span className="font-mono text-[0.78rem] text-[#666] px-2">
+            {safePage} / {totalPages}
+          </span>
+          <button
+            onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); setExpandedId(null) }}
+            disabled={safePage >= totalPages}
+            className="px-3 py-1.5 rounded text-xs font-medium border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          >
+            下一页
+          </button>
         </section>
       )}
     </div>
