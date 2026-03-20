@@ -16,14 +16,6 @@ interface Props {
 
 type SortMode = 'importance' | 'time'
 
-const SOURCE_LABELS: Record<string, string> = {
-  all: '全部来源',
-  official: '官方',
-  community: '社区',
-  person: '个人',
-  media: '媒体',
-}
-
 function scoreClass(s: number) {
   if (s >= 8) return 'text-[#0c7a4a] bg-[#0c7a4a]/[0.08]'
   if (s >= 5) return 'text-[#b45309] bg-[#b45309]/[0.08]'
@@ -55,12 +47,15 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
     return counts
   }, [articles])
 
-  // Unique sources for select
-  const sources = useMemo(() => {
-    const cats = new Set<string>()
-    articles.forEach(a => cats.add(a.source_category))
-    return Array.from(cats).sort()
+  // Unique source slugs (actual monitored sources)
+  const sourceList = useMemo(() => {
+    const map = new Map<string, string>()
+    articles.forEach(a => {
+      if (!map.has(a.source_slug)) map.set(a.source_slug, a.source_name)
+    })
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]))
   }, [articles])
+  const sourceCount = sourceList.length
 
   // Weighted score: importance 80% + source priority 20% (both on 10-point scale)
   const weightedScore = (a: EnrichedArticle) =>
@@ -70,7 +65,7 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
   const filtered = useMemo(() => {
     let result = articles.filter(a => {
       if (selectedCategory && a.content_category !== selectedCategory) return false
-      if (sourceFilter !== 'all' && a.source_category !== sourceFilter) return false
+      if (sourceFilter !== 'all' && a.source_slug !== sourceFilter) return false
       if (a.importance_score < minScore) return false
       if (searchQuery) {
         const q = searchQuery.toLowerCase()
@@ -90,9 +85,9 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
     return result
   }, [articles, selectedCategory, sourceFilter, minScore, searchQuery, sortMode])
 
-  const highSignal = filtered.filter(a => a.importance_score >= 7).length
-  const avgScore = filtered.length
-    ? Math.round(filtered.reduce((s, a) => s + a.importance_score, 0) / filtered.length * 10) / 10
+  const highSignal = articles.filter(a => a.importance_score >= 7).length
+  const avgScore = articles.length
+    ? Math.round(articles.reduce((s, a) => s + a.importance_score, 0) / articles.length * 10) / 10
     : 0
   return (
     <div>
@@ -103,7 +98,7 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
           <span className="text-[0.8rem] text-[#666]">今日抓取</span>
         </div>
         <div className="bg-white p-4 flex items-baseline gap-2">
-          <span className="font-mono text-2xl font-bold text-black tracking-tight">{sources.length}</span>
+          <span className="font-mono text-2xl font-bold text-black tracking-tight">{sourceCount}</span>
           <span className="text-[0.8rem] text-[#666]">监控源</span>
         </div>
         <div className="bg-white p-4 flex items-baseline gap-2">
@@ -142,9 +137,10 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
           className="bg-white border border-[#EAEAEA] rounded-lg px-2.5 py-1.5 text-[0.82rem] text-[#171717] outline-none focus:border-black transition-colors appearance-none pr-7 bg-no-repeat bg-[right_8px_center] bg-[length:12px_12px]"
           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")` }}
         >
-          {Object.entries(SOURCE_LABELS).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
-          ))}
+          <option value="all">全部来源</option>
+            {sourceList.map(([slug, name]) => (
+              <option key={slug} value={slug}>{name}</option>
+            ))}
         </select>
 
         <div className="flex items-center gap-2 text-[0.82rem] text-[#666]">
