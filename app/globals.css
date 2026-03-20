@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === Vercel Light Theme === */
+
+:root {
+  --bg: #FFFFFF;
+  --bg-card: #FAFAFA;
+  --bg-hover: #F5F5F5;
+  --accent: #0070F3;
+  --accent-hover: #005cc5;
+  --text-primary: #171717;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --border: #EAEAEA;
+  --border-light: #F0F0F0;
+  --radius: 8px;
+  --transition: 150ms ease;
+}
+
+/* Scrollbar — light */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #FAFAFA; }
+::-webkit-scrollbar-thumb { background: #D4D4D4; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #A3A3A3; }
+
+/* === Article row expand animation === */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.article-row {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: fadeIn 0.3s forwards;
+}
+
+/* Score slider */
+input[type="range"].score-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"].score-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #000;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--border);
+  cursor: pointer;
+}
+
+/* === Markdown digest styles (light theme) === */
+.prose-light h1 { @apply text-2xl font-bold text-[#171717] mt-6 mb-3; }
+.prose-light h2 { @apply text-xl font-semibold text-[#171717] mt-8 mb-3 border-b border-[#EAEAEA] pb-2; }
+.prose-light h3 { @apply text-lg font-semibold text-[#171717] mt-6 mb-2; }
+.prose-light h4 { @apply text-base font-medium text-[#0070F3] mt-4 mb-1; }
+.prose-light p  { @apply text-[#666666] leading-relaxed mb-3; }
+.prose-light a  { @apply text-[#0070F3] hover:text-[#005cc5] underline-offset-2 hover:underline; }
+.prose-light ul { @apply list-disc list-inside text-[#666666] space-y-1 mb-3; }
+.prose-light hr { @apply border-[#EAEAEA] my-3; }
+.prose-light blockquote { @apply border-l-2 border-[#0070F3] pl-4 text-[#666666] italic bg-[#F5F5F5] py-2 rounded-r; }
+.prose-light code { @apply bg-[#F5F5F5] px-1.5 py-0.5 rounded text-sm text-[#171717] font-mono; }
+.prose-light strong { @apply text-[#171717] font-semibold; }
