@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import CategoryFilter from '@/components/CategoryFilter'
 import { categoryLabel } from '@/lib/i18n/categories'
+import { SOURCE_CONFIGS } from '@/lib/crawlers/sources'
 import type { EnrichedArticle, ContentCategory, SourceCategory } from '@/lib/types'
 
 interface Props {
@@ -47,15 +48,15 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
     return counts
   }, [articles])
 
-  // Unique source slugs (actual monitored sources)
+  // Source list from config (complete) + filter to those with articles
   const sourceList = useMemo(() => {
-    const map = new Map<string, string>()
-    articles.forEach(a => {
-      if (!map.has(a.source_slug)) map.set(a.source_slug, a.source_name)
-    })
-    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]))
+    const slugsWithArticles = new Set(articles.map(a => a.source_slug))
+    return SOURCE_CONFIGS
+      .filter(s => slugsWithArticles.has(s.slug))
+      .map(s => [s.slug, s.name] as [string, string])
+      .sort((a, b) => a[1].localeCompare(b[1]))
   }, [articles])
-  const sourceCount = sourceList.length
+  const sourceCount = SOURCE_CONFIGS.length
 
   // Weighted score: importance 80% + source priority 20% (both on 10-point scale)
   const weightedScore = (a: EnrichedArticle) =>

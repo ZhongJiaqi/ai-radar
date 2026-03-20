@@ -13,7 +13,7 @@ export default function CategoryFilter({ selected, onSelect, counts }: Props) {
   const total = Object.values(counts).reduce((s, n) => s + (n || 0), 0)
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex gap-1.5 overflow-x-auto scrollbar-hide whitespace-nowrap">
       <button
         onClick={() => onSelect(null)}
         className={`px-3 py-1 rounded-full text-[0.78rem] font-medium border transition-all ${
