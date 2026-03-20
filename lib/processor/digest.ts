@@ -110,7 +110,7 @@ async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<st
 
   const response = await anthropic.messages.create({
     model: SONNET_MODEL,
-    max_tokens: 1000,
+    max_tokens: 500,
     messages: [
       {
         role: 'user',
@@ -119,7 +119,7 @@ async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<st
 要求：
 - 概括今天的整体趋势和最值得关注的方向
 - 分析这些事件背后的深层含义、行业影响和未来走向
-- 总字数严格控制在300字以内
+- 总字数控制在200-300字，用1个自然段写完，超过300字视为不合格
 - 直接输出一段连贯的分析文字，不要分条列举，不要加标题或 emoji
 
 ${articleList}
