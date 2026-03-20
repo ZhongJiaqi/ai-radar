@@ -18,12 +18,21 @@ const CATEGORY_PROMPT_LIST = CONTENT_CATEGORIES
   .map(slug => `${slug} (${CATEGORY_LABELS[slug].zh})`)
   .join(' / ')
 
+function sanitizeContent(text: string): string {
+  return text
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // control chars
+    .replace(/\\/g, '\\\\')  // escape backslashes
+    .replace(/\u2028/g, ' ') // line separator
+    .replace(/\u2029/g, ' ') // paragraph separator
+    .replace(/\0/g, '')      // null bytes
+}
+
 function buildUserPrompt(title: string, content: string, sourceCategory: string): string {
   return `分析以下 AI 资讯，返回 JSON：
 
-标题: ${title}
+标题: ${sanitizeContent(title)}
 来源类型: ${sourceCategory}
-内容摘要: ${content.slice(0, 2000)}
+内容摘要: ${sanitizeContent(content.slice(0, 2000))}
 
 返回格式（严格 JSON，不加任何其他文字）：
 {
