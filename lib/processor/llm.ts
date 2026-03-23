@@ -67,10 +67,12 @@ export async function processArticle(
     anthropic.messages.create({
       model: HAIKU_MODEL,
       max_tokens: 512,
-      system: SYSTEM_PROMPT,
       messages: [
         // Use explicit content blocks for maximum gateway compatibility.
-        { role: 'user', content: [{ type: 'text', text: buildUserPrompt(title, content, sourceCategory) }] },
+        {
+          role: 'user',
+          content: [{ type: 'text', text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(title, content, sourceCategory)}` }],
+        },
       ],
     })
   )

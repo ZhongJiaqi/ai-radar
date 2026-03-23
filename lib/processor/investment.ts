@@ -106,13 +106,12 @@ export async function extractInvestmentEvent(input: {
   const response = await callWithRetry(() =>
     anthropic.messages.create({
       model: HAIKU_MODEL,
-      max_tokens: 600,
-      system: SYSTEM_PROMPT,
+      max_tokens: 500,
       messages: [
         {
           role: 'user',
           // Explicit content blocks for gateway compatibility.
-          content: [{ type: 'text', text: buildUserPrompt(input) }],
+          content: [{ type: 'text', text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(input)}` }],
         },
       ],
     })

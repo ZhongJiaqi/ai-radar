@@ -87,12 +87,11 @@ export async function processJobPost(input: {
     anthropic.messages.create({
       model: HAIKU_MODEL,
       max_tokens: 500,
-      system: SYSTEM_PROMPT,
       messages: [
         {
           role: 'user',
           // Explicit content blocks for gateway compatibility.
-          content: [{ type: 'text', text: buildPrompt(input) }],
+          content: [{ type: 'text', text: `${SYSTEM_PROMPT}\n\n${buildPrompt(input)}` }],
         },
       ],
     })
@@ -161,4 +160,3 @@ export function computeHotScore(input: {
   const rounded = Math.round(score)
   return Math.max(1, Math.min(10, rounded))
 }
-
