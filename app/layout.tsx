@@ -4,6 +4,7 @@ import Link from 'next/link'
 import './globals.css'
 import NavClock from '@/components/NavClock'
 import NavLinks from '@/components/NavLinks'
+import { getSiteUrl } from '@/lib/site'
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ['latin'],
@@ -17,7 +18,7 @@ const ibmPlexMono = IBM_Plex_Mono({
   variable: '--font-ibm-plex-mono',
 })
 
-const siteUrl = 'https://ai-radar.dev'
+const siteUrl = getSiteUrl()
 
 export const metadata: Metadata = {
   title: {

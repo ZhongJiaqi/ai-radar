@@ -1,11 +1,13 @@
 import { MetadataRoute } from 'next'
+import { getSiteUrl } from '@/lib/site'
 
 export default function robots(): MetadataRoute.Robots {
+  const siteUrl = getSiteUrl()
   return {
     rules: {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: 'https://ai-radar.dev/sitemap.xml',
+    sitemap: `${siteUrl}/sitemap.xml`,
   }
 }

@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next'
 import { createPublicClient } from '@/lib/supabase'
+import { getSiteUrl } from '@/lib/site'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = 'https://ai-radar.dev'
+  const siteUrl = getSiteUrl()
   const supabase = createPublicClient()
 
   // Fetch last 30 digest dates
