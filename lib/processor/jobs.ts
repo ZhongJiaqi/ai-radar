@@ -90,7 +90,12 @@ export async function processJobPost(input: {
       messages: [
         {
           role: 'user',
-          content: `${SYSTEM_PROMPT}\n\n${buildPrompt(input)}`,
+          content: [
+            {
+              type: 'text',
+              text: `${SYSTEM_PROMPT}\n\n${buildPrompt(input)}`,
+            },
+          ],
         },
       ],
     })

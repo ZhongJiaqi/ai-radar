@@ -70,7 +70,13 @@ export async function processArticle(
       messages: [
         {
           role: 'user',
-          content: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(title, content, sourceCategory)}`,
+          // Right Code/Claude 网关对 messages.content 的兼容性更好：使用标准 content blocks。
+          content: [
+            {
+              type: 'text',
+              text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(title, content, sourceCategory)}`,
+            },
+          ],
         },
       ],
     })

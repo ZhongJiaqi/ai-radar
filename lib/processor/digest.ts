@@ -114,7 +114,10 @@ async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<st
     messages: [
       {
         role: 'user',
-        content: `基于以下今日 AI 资讯，写一段面向 AI 从业者的每日深度分析总结，用中文。
+        content: [
+          {
+            type: 'text',
+            text: `基于以下今日 AI 资讯，写一段面向 AI 从业者的每日深度分析总结，用中文。
 
 要求：
 - 概括今天的整体趋势和最值得关注的方向
@@ -125,6 +128,8 @@ async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<st
 ${articleList}
 
 直接输出内容。`,
+          },
+        ],
       },
     ],
   })

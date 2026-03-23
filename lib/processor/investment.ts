@@ -110,7 +110,12 @@ export async function extractInvestmentEvent(input: {
       messages: [
         {
           role: 'user',
-          content: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(input)}`,
+          content: [
+            {
+              type: 'text',
+              text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(input)}`,
+            },
+          ],
         },
       ],
     })
