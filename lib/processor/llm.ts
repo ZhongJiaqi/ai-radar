@@ -68,10 +68,9 @@ export async function processArticle(
       model: HAIKU_MODEL,
       max_tokens: 512,
       messages: [
-        // Use explicit content blocks for maximum gateway compatibility.
         {
           role: 'user',
-          content: [{ type: 'text', text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(title, content, sourceCategory)}` }],
+          content: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(title, content, sourceCategory)}`,
         },
       ],
     })

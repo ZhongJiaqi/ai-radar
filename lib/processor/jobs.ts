@@ -90,8 +90,7 @@ export async function processJobPost(input: {
       messages: [
         {
           role: 'user',
-          // Explicit content blocks for gateway compatibility.
-          content: [{ type: 'text', text: `${SYSTEM_PROMPT}\n\n${buildPrompt(input)}` }],
+          content: `${SYSTEM_PROMPT}\n\n${buildPrompt(input)}`,
         },
       ],
     })

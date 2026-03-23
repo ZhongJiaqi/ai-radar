@@ -110,8 +110,7 @@ export async function extractInvestmentEvent(input: {
       messages: [
         {
           role: 'user',
-          // Explicit content blocks for gateway compatibility.
-          content: [{ type: 'text', text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(input)}` }],
+          content: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(input)}`,
         },
       ],
     })
