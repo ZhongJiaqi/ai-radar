@@ -69,7 +69,8 @@ export async function processArticle(
       max_tokens: 512,
       system: SYSTEM_PROMPT,
       messages: [
-        { role: 'user', content: buildUserPrompt(title, content, sourceCategory) },
+        // Use explicit content blocks for maximum gateway compatibility.
+        { role: 'user', content: [{ type: 'text', text: buildUserPrompt(title, content, sourceCategory) }] },
       ],
     })
   )
