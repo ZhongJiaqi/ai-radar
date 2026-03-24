@@ -27,4 +27,9 @@ export const anthropic = new Anthropic({
 // NOTE: Right Code 的 Claude 网关目前公开文档列出的模型以 Sonnet/Opus 为主，
 // 为避免因为模型不在网关白名单而触发 400，这里提供可通过环境变量覆盖的默认值。
 export const HAIKU_MODEL = process.env.CLAUDE_SMALL_MODEL || 'claude-sonnet-4-5-20250929'
-export const SONNET_MODEL = process.env.CLAUDE_LARGE_MODEL || 'claude-sonnet-4-5-20250929-thinking'
+// 之前默认使用 *thinking* 变体会在部分 Right Code 端点（如 /claude-aws）触发
+// “未配置模型”导致 workflow 失败；这里默认回退到通用的 sonnet 变体，必要时再用环境变量覆盖。
+export const SONNET_MODEL =
+  process.env.CLAUDE_LARGE_MODEL ||
+  process.env.CLAUDE_SMALL_MODEL ||
+  'claude-sonnet-4-5-20250929'

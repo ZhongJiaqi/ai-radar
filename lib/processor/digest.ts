@@ -4,7 +4,7 @@
 
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
-import { anthropic, SONNET_MODEL } from '../claude'
+import { anthropic, HAIKU_MODEL, SONNET_MODEL } from '../claude'
 import { createServiceClient } from '../supabase'
 import { categoryLabel } from '../i18n/categories'
 import type { EnrichedArticle, DigestStats, ContentCategory } from '../types'
@@ -108,16 +108,7 @@ async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<st
     )
     .join('\n')
 
-  const response = await anthropic.messages.create({
-    model: SONNET_MODEL,
-    max_tokens: 280,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: `基于以下今日 AI 资讯，写一段面向 AI 从业者的每日深度分析总结，用中文。
+  const prompt = `基于以下今日 AI 资讯，写一段面向 AI 从业者的每日深度分析总结，用中文。
 
 要求：
 - 概括今天的整体趋势和最值得关注的方向
@@ -127,15 +118,70 @@ async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<st
 
 ${articleList}
 
-直接输出内容。`,
+直接输出内容。`
+
+  const toErrText = (err: unknown): string => {
+    if (err && typeof err === 'object') {
+      const anyErr = err as any
+      if (typeof anyErr.error === 'string') return anyErr.error
+      if (anyErr.error && typeof anyErr.error === 'object') {
+        if (typeof anyErr.error.error === 'string') return anyErr.error.error
+        if (typeof anyErr.error.message === 'string') return anyErr.error.message
+      }
+      if (typeof anyErr.message === 'string') return anyErr.message
+    }
+    return String(err)
+  }
+
+  const modelsToTry = Array.from(
+    new Set(
+      [
+        SONNET_MODEL,
+        HAIKU_MODEL,
+        'claude-sonnet-4-5-20250929',
+      ].filter(Boolean)
+    )
+  )
+
+  let lastErr: unknown = null
+  for (const model of modelsToTry) {
+    try {
+      const response = await anthropic.messages.create({
+        model,
+        max_tokens: 280,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: prompt,
+              },
+            ],
           },
         ],
-      },
-    ],
-  })
+      })
 
-  const block = response.content[0]
-  return block?.type === 'text' ? block.text : ''
+      const block = response.content[0]
+      const text = block?.type === 'text' ? block.text : ''
+      if (text.trim()) return text.trim()
+      throw new Error('LLM returned empty summary')
+    } catch (err) {
+      lastErr = err
+      console.warn(`[Digest] Executive summary failed with model=${model}: ${toErrText(err)}`)
+    }
+  }
+
+  // Hard fallback: generate a deterministic one-paragraph summary so the workflow doesn't block site updates.
+  console.warn('[Digest] Executive summary fallback: using heuristic summary due to LLM errors:', toErrText(lastErr))
+  const titles = articles
+    .slice(0, 5)
+    .map(a => String(a.title || '').trim().replace(/\s+/g, ' '))
+    .filter(Boolean)
+    .join('；')
+
+  const fallback = `今日共收录${articles.length}条 AI 资讯。重点包括：${titles || '（暂无可用标题）'}。整体来看，大模型能力与产品化落地继续并行推进，开源生态与算力/基础设施仍是高频主题。建议关注头部模型与关键工具更新带来的研发效率、成本结构与商业化机会变化。`
+  return fallback
 }
 
 function buildMarkdown(
