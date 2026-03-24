@@ -46,6 +46,25 @@ function buildUserPrompt(title: string, content: string, sourceCategory: string)
 }`
 }
 
+function heuristicFallback(title: string, content: string, sourceCategory: string): LLMResult {
+  const score =
+    sourceCategory === 'official' ? 5
+      : sourceCategory === 'person' ? 4
+        : 3
+
+  const compact = (s: string) => s.replace(/\s+/g, ' ').trim()
+  const snippet = compact(sanitizeContent(content || '')).slice(0, 220)
+  const summary = compact(`${title}。${snippet ? ` ${snippet}` : ''}`).slice(0, 500)
+
+  return {
+    summary_zh: summary || String(title || '').slice(0, 500),
+    category: 'industry_news',
+    tags: [],
+    importance_score: score,
+    why_it_matters: '暂时无法获取 LLM 分析结果，后续将自动补全。',
+  }
+}
+
 async function callWithRetry<T>(
   fn: () => Promise<T>,
   retries = 3,
@@ -107,18 +126,28 @@ export async function processArticle(
   content: string,
   sourceCategory: string
 ): Promise<{ result: LLMResult; modelUsed: string }> {
-  const modelsToTry = Array.from(
+  const modelCandidates = Array.from(
     new Set(
       [
         HAIKU_MODEL,
         SONNET_MODEL,
         // Hard fallback: a known-good model for gateways where env-configured models are missing.
         'claude-sonnet-4-5-20250929',
+        // Wider compatibility fallbacks for gateways that don't expose 4.x model ids.
+        'claude-3-5-haiku-20241022',
+        'claude-3-5-sonnet-20241022',
       ]
         .filter(Boolean)
         .filter(m => !unavailableModels.has(m))
     )
   )
+
+  const modelsToTry = modelCandidates.length > 0
+    ? modelCandidates
+    : [
+      // If we filtered everything out, keep at least one attempt before falling back.
+      'claude-3-5-haiku-20241022',
+    ]
 
   let lastErr: unknown = null
   for (const model of modelsToTry) {
@@ -181,7 +210,10 @@ export async function processArticle(
     }
   }
 
-  throw new Error(`processArticle failed for all models (${modelsToTry.join(', ')}): ${toErrText(lastErr)}`)
+  console.warn(
+    `[LLM] processArticle fallback: all models failed (${modelsToTry.join(', ')}); using heuristic result: ${toErrText(lastErr)}`
+  )
+  return { modelUsed: 'fallback', result: heuristicFallback(title, content, sourceCategory) }
 }
 
 // ---- Batch processor ----
