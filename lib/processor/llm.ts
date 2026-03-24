@@ -2,7 +2,7 @@
 // AI Radar - LLM Processor (Anthropic Claude API)
 // ======================================================
 
-import { anthropic, HAIKU_MODEL } from '../claude'
+import { anthropic, HAIKU_MODEL, SONNET_MODEL } from '../claude'
 import { createServiceClient } from '../supabase'
 import { SOURCE_CONFIGS } from '../crawlers/sources'
 import { CATEGORY_LABELS } from '../i18n/categories'
@@ -58,56 +58,93 @@ async function callWithRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
   throw new Error('Unreachable')
 }
 
+const toErrText = (err: unknown): string => {
+  if (err && typeof err === 'object') {
+    const anyErr = err as any
+    if (typeof anyErr.error === 'string') return anyErr.error
+    if (anyErr.error && typeof anyErr.error === 'object') {
+      if (typeof anyErr.error.error === 'string') return anyErr.error.error
+      if (typeof anyErr.error.message === 'string') return anyErr.error.message
+    }
+    if (typeof anyErr.message === 'string') return anyErr.message
+  }
+  return String(err)
+}
+
 export async function processArticle(
   title: string,
   content: string,
   sourceCategory: string
-): Promise<LLMResult> {
-  const response = await callWithRetry(() =>
-    anthropic.messages.create({
-      model: HAIKU_MODEL,
-      max_tokens: 512,
-      messages: [
-        {
-          role: 'user',
-          // Right Code/Claude 网关对 messages.content 的兼容性更好：使用标准 content blocks。
-          content: [
-            {
-              type: 'text',
-              text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(title, content, sourceCategory)}`,
-            },
-          ],
-        },
-      ],
-    })
+): Promise<{ result: LLMResult; modelUsed: string }> {
+  const modelsToTry = Array.from(
+    new Set(
+      [
+        HAIKU_MODEL,
+        SONNET_MODEL,
+        // Hard fallback: a known-good model for gateways where env-configured models are missing.
+        'claude-sonnet-4-5-20250929',
+      ].filter(Boolean)
+    )
   )
 
-  const text = response.content[0]?.type === 'text' ? response.content[0].text : ''
+  let lastErr: unknown = null
+  for (const model of modelsToTry) {
+    try {
+      const response = await callWithRetry(() =>
+        anthropic.messages.create({
+          model,
+          max_tokens: 512,
+          messages: [
+            {
+              role: 'user',
+              // Right Code/Claude 网关对 messages.content 的兼容性更好：使用标准 content blocks。
+              content: [
+                {
+                  type: 'text',
+                  text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(title, content, sourceCategory)}`,
+                },
+              ],
+            },
+          ],
+        })
+      )
 
-  // Parse JSON from response
-  const jsonMatch = text.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) {
-    throw new Error(`LLM returned invalid JSON: ${text.slice(0, 200)}`)
+      const text = response.content[0]?.type === 'text' ? response.content[0].text : ''
+
+      // Parse JSON from response
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) {
+        throw new Error(`LLM returned invalid JSON: ${text.slice(0, 200)}`)
+      }
+
+      const parsed = JSON.parse(jsonMatch[0])
+
+      // Validate and sanitize
+      const category = CONTENT_CATEGORIES.includes(parsed.category)
+        ? parsed.category as ContentCategory
+        : 'industry_news'
+
+      const score = Math.max(1, Math.min(10, Math.round(Number(parsed.importance_score) || 5)))
+
+      return {
+        modelUsed: model,
+        result: {
+          summary_zh: String(parsed.summary_zh || '').slice(0, 500),
+          category,
+          tags: Array.isArray(parsed.tags)
+            ? parsed.tags.slice(0, 8).map(String)
+            : [],
+          importance_score: score,
+          why_it_matters: String(parsed.why_it_matters || '').slice(0, 300),
+        },
+      }
+    } catch (err) {
+      lastErr = err
+      console.warn(`[LLM] processArticle failed with model=${model}: ${toErrText(err)}`)
+    }
   }
 
-  const parsed = JSON.parse(jsonMatch[0])
-
-  // Validate and sanitize
-  const category = CONTENT_CATEGORIES.includes(parsed.category)
-    ? parsed.category as ContentCategory
-    : 'industry_news'
-
-  const score = Math.max(1, Math.min(10, Math.round(Number(parsed.importance_score) || 5)))
-
-  return {
-    summary_zh: String(parsed.summary_zh || '').slice(0, 500),
-    category,
-    tags: Array.isArray(parsed.tags)
-      ? parsed.tags.slice(0, 8).map(String)
-      : [],
-    importance_score: score,
-    why_it_matters: String(parsed.why_it_matters || '').slice(0, 300),
-  }
+  throw new Error(`processArticle failed for all models (${modelsToTry.join(', ')}): ${toErrText(lastErr)}`)
 }
 
 // ---- Batch processor ----
@@ -147,7 +184,7 @@ export async function processUnprocessedArticles(batchSize = 20): Promise<{
     try {
       const src = SOURCE_CONFIGS.find(s => s.slug === article.source_slug)
       const sourceCategory = src?.category || 'media'
-      const result = await processArticle(
+      const { result, modelUsed } = await processArticle(
         article.title,
         article.content || article.title,
         sourceCategory
@@ -162,7 +199,7 @@ export async function processUnprocessedArticles(batchSize = 20): Promise<{
           tags: result.tags,
           importance_score: result.importance_score,
           why_it_matters: result.why_it_matters,
-          model_used: HAIKU_MODEL,
+          model_used: modelUsed,
         })
 
       if (insertError) {

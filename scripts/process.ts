@@ -9,7 +9,9 @@ async function main() {
   const total = result.processed + result.failed
   const successRate = total > 0 ? Math.round((result.processed / total) * 100) : 100
   console.log(`[Process] Done: ${result.processed} processed, ${result.failed} failed (${successRate}% success rate)`)
-  if (successRate < 80 && result.failed > 5) process.exit(1)
+  // Only fail the workflow when processing is completely broken.
+  // Partial failures should not block database updates / site freshness.
+  if (result.processed === 0 && result.failed > 0) process.exit(1)
   process.exit(0)
 }
 
