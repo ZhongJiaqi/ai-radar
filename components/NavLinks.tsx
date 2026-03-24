@@ -5,8 +5,7 @@ import { usePathname } from 'next/navigation'
 
 const NAV_ITEMS = [
   { href: '/', label: 'AI News' },
-  { href: '/jobs', label: 'AI Jobs' },
-  { href: '/investment', label: 'AI Investment' },
+  { href: '/digest', label: 'Digest' },
 ]
 
 export default function NavLinks() {
