@@ -18,6 +18,8 @@ const CATEGORY_PROMPT_LIST = CONTENT_CATEGORIES
   .map(slug => `${slug} (${CATEGORY_LABELS[slug].zh})`)
   .join(' / ')
 
+const unavailableModels = new Set<string>()
+
 function sanitizeContent(text: string): string {
   return text
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // control chars
@@ -44,12 +46,16 @@ function buildUserPrompt(title: string, content: string, sourceCategory: string)
 }`
 }
 
-async function callWithRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+async function callWithRetry<T>(
+  fn: () => Promise<T>,
+  retries = 3,
+  shouldRetryFn: (err: unknown) => boolean = () => true
+): Promise<T> {
   for (let i = 0; i < retries; i++) {
     try {
       return await fn()
     } catch (err) {
-      if (i === retries - 1) throw err
+      if (i === retries - 1 || !shouldRetryFn(err)) throw err
       const delay = Math.pow(2, i) * 1000
       console.warn(`[LLM] Retry ${i + 1}/${retries} after ${delay}ms...`)
       await new Promise(r => setTimeout(r, delay))
@@ -71,6 +77,31 @@ const toErrText = (err: unknown): string => {
   return String(err)
 }
 
+const isModelUnavailableError = (err: unknown): boolean => {
+  if (err && typeof err === 'object') {
+    const anyErr = err as any
+    const t =
+      anyErr?.error?.error?.type ??
+      anyErr?.error?.type ??
+      anyErr?.type
+    if (t === 'model_not_found') return true
+  }
+  const msg = toErrText(err).toLowerCase()
+  return msg.includes('model_not_found') || msg.includes('no available channel for model')
+}
+
+const shouldRetry = (err: unknown): boolean => {
+  const anyErr = err as any
+  const status = anyErr?.status
+  // 4xx (except rate limit) are usually config errors; retrying wastes time.
+  if (typeof status === 'number' && status >= 400 && status < 500 && status !== 429) {
+    return false
+  }
+  // Model unavailable is not transient.
+  if (isModelUnavailableError(err)) return false
+  return true
+}
+
 export async function processArticle(
   title: string,
   content: string,
@@ -83,30 +114,35 @@ export async function processArticle(
         SONNET_MODEL,
         // Hard fallback: a known-good model for gateways where env-configured models are missing.
         'claude-sonnet-4-5-20250929',
-      ].filter(Boolean)
+      ]
+        .filter(Boolean)
+        .filter(m => !unavailableModels.has(m))
     )
   )
 
   let lastErr: unknown = null
   for (const model of modelsToTry) {
     try {
-      const response = await callWithRetry(() =>
-        anthropic.messages.create({
-          model,
-          max_tokens: 512,
-          messages: [
-            {
-              role: 'user',
-              // Right Code/Claude 网关对 messages.content 的兼容性更好：使用标准 content blocks。
-              content: [
-                {
-                  type: 'text',
-                  text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(title, content, sourceCategory)}`,
-                },
-              ],
-            },
-          ],
-        })
+      const response = await callWithRetry(
+        () =>
+          anthropic.messages.create({
+            model,
+            max_tokens: 512,
+            messages: [
+              {
+                role: 'user',
+                // Right Code/Claude 网关对 messages.content 的兼容性更好：使用标准 content blocks。
+                content: [
+                  {
+                    type: 'text',
+                    text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(title, content, sourceCategory)}`,
+                  },
+                ],
+              },
+            ],
+          }),
+        3,
+        shouldRetry
       )
 
       const text = response.content[0]?.type === 'text' ? response.content[0].text : ''
@@ -140,6 +176,7 @@ export async function processArticle(
       }
     } catch (err) {
       lastErr = err
+      if (isModelUnavailableError(err)) unavailableModels.add(model)
       console.warn(`[LLM] processArticle failed with model=${model}: ${toErrText(err)}`)
     }
   }
