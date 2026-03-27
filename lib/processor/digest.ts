@@ -4,7 +4,7 @@
 
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
-import { anthropic, HAIKU_MODEL, SONNET_MODEL } from '../claude'
+import { generateText } from '../llm'
 import { createServiceClient } from '../supabase'
 import { categoryLabel } from '../i18n/categories'
 import type { EnrichedArticle, DigestStats, ContentCategory } from '../types'
@@ -111,14 +111,15 @@ async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<st
   const prompt = `基于以下今日 AI 资讯，写一段面向 AI 从业者的每日深度分析总结，用中文。
 
 要求：
-- 概括今天的整体趋势和最值得关注的方向
-- 分析这些事件背后的深层含义、行业影响和未来走向
-- 总字数控制在200-300字，用1个自然段写完，超过300字视为不合格
-- 直接输出一段连贯的分析文字，不要分条列举，不要加标题或 emoji
+- 提炼3-5个最值得关注的要点，每个要点一行
+- 每个要点控制在50-80字，简洁有力
+- 总字数不超过300字
+- 每行开头不要加序号、emoji或符号，直接输出要点内容
+- 每个要点之间用换行符分隔
 
 ${articleList}
 
-直接输出内容。`
+直接输出内容，每个要点一行。`
 
   const toErrText = (err: unknown): string => {
     if (err && typeof err === 'object') {
@@ -133,43 +134,18 @@ ${articleList}
     return String(err)
   }
 
-  const modelsToTry = Array.from(
-    new Set(
-      [
-        SONNET_MODEL,
-        HAIKU_MODEL,
-        'claude-sonnet-4-5-20250929',
-      ].filter(Boolean)
-    )
-  )
-
   let lastErr: unknown = null
-  for (const model of modelsToTry) {
-    try {
-      const response = await anthropic.messages.create({
-        model,
-        max_tokens: 280,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: prompt,
-              },
-            ],
-          },
-        ],
-      })
-
-      const block = response.content[0]
-      const text = block?.type === 'text' ? block.text : ''
-      if (text.trim()) return text.trim()
-      throw new Error('LLM returned empty summary')
-    } catch (err) {
-      lastErr = err
-      console.warn(`[Digest] Executive summary failed with model=${model}: ${toErrText(err)}`)
-    }
+  try {
+    const response = await generateText({
+      task: 'digest',
+      prompt,
+      maxTokens: 400,
+    })
+    if (response.text.trim()) return response.text.trim()
+    throw new Error('LLM returned empty summary')
+  } catch (err) {
+    lastErr = err
+    console.warn(`[Digest] Executive summary failed: ${toErrText(err)}`)
   }
 
   // Hard fallback: generate a deterministic one-paragraph summary so the workflow doesn't block site updates.

@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import Link from 'next/link'
 import CategoryFilter from '@/components/CategoryFilter'
 import { categoryLabel } from '@/lib/i18n/categories'
 import { SOURCE_CONFIGS } from '@/lib/crawlers/sources'
 import type { EnrichedArticle, ContentCategory, SourceCategory } from '@/lib/types'
+import type { ModelDomain, ModelRankingRow } from '@/lib/rankings/types'
 
 interface Props {
   articles: EnrichedArticle[]
@@ -14,14 +16,15 @@ interface Props {
     generated_at: string
     summary: string | null
   } | null
+  modelRankings: ModelRankingRow[]
 }
 
 type SortMode = 'importance' | 'time'
 
-function scoreClass(s: number) {
-  if (s >= 8) return 'text-[#0c7a4a] bg-[#0c7a4a]/[0.08]'
-  if (s >= 5) return 'text-[#b45309] bg-[#b45309]/[0.08]'
-  return 'text-[#666] bg-black/[0.03]'
+function scoreColor(s: number): string {
+  if (s >= 8) return 'bg-emerald-50 text-emerald-600'
+  if (s >= 5) return 'bg-amber-50 text-amber-600'
+  return 'bg-gray-100 text-gray-400'
 }
 
 function getTimeAgo(date: Date): string {
@@ -33,7 +36,7 @@ function getTimeAgo(date: Date): string {
   return `${days}d ago`
 }
 
-export default function DashboardClient({ articles, latestDigest }: Props) {
+export default function DashboardClient({ articles, latestDigest, modelRankings }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<ContentCategory | null>(null)
   const [sourceFilter, setSourceFilter] = useState<string>('all')
   const [sortMode, setSortMode] = useState<SortMode>('importance')
@@ -104,166 +107,199 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
     }
   }, [filtered])
 
+  const domainMeta: Record<ModelDomain, { zh: string; en: string }> = {
+    coding: { zh: '编程', en: 'Coding' },
+    math: { zh: '数学', en: 'Math' },
+    text: { zh: '文本', en: 'Text' },
+    image: { zh: '图片', en: 'Image' },
+    video: { zh: '视频', en: 'Video' },
+    audio: { zh: '语音', en: 'Audio' },
+  }
+  const domainOrder: ModelDomain[] = ['coding', 'text', 'image', 'video']
+
+  const top1ByDomain = useMemo(() => {
+    const map = new Map<ModelDomain, ModelRankingRow>()
+    for (const r of modelRankings || []) {
+      if (r.rank !== 1) continue
+      map.set(r.domain, r)
+    }
+    return map
+  }, [modelRankings])
+
   return (
     <div>
-      {/* Today's highlights card */}
-      {latestDigest?.summary && (
-          <section className="mb-6 border border-[#EAEAEA] rounded-lg overflow-hidden">
-            <div className="px-4 py-3 bg-[#FAFAFA]">
-              <span className="text-lg font-semibold text-[#171717]">📌 今日要点</span>
+      {/* Top panels */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        {latestDigest?.summary && (
+          <section className="md:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-sm font-semibold text-gray-500">今日要点</h2>
+              <Link href={`/digest/${latestDigest.date}`} className="text-xs text-gray-400 hover:text-gray-800 transition-colors">
+                完整简报 &rarr;
+              </Link>
             </div>
-            <div className="px-4 py-3">
-              <p className="text-sm leading-relaxed text-[#444] whitespace-pre-line">{latestDigest.summary}</p>
-            </div>
+            <ul className="space-y-4 text-[15px] leading-relaxed text-gray-600">
+              {latestDigest.summary.split('\n').filter(Boolean).slice(0, 5).map((line, i) => {
+                const cleanLine = line.replace(/^[-•]\s*/, '').substring(0, 150)
+                return (
+                  <li key={i} className="flex gap-3">
+                    <span className="text-gray-300 mt-0.5 flex-shrink-0">•</span>
+                    <span>{cleanLine}</span>
+                  </li>
+                )
+              })}
+            </ul>
           </section>
-      )}
+        )}
 
-      {/* Filter bar */}
-      <section className="flex items-center gap-3 mb-6 pb-6 border-b border-[#EAEAEA]">
-        <div className="relative flex-shrink-0 w-[200px]">
-          <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 stroke-[#999]" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="text"
-            placeholder="搜索资讯..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-white border border-[#EAEAEA] rounded-lg py-[7px] pl-9 pr-3 text-[0.85rem] text-[#171717] placeholder-[#999] outline-none focus:border-black transition-colors"
-          />
+        <section className={`bg-white rounded-xl border border-gray-100 shadow-sm p-8 ${latestDigest?.summary ? '' : 'md:col-span-3'}`}>
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-sm font-semibold text-gray-500">模型排行</h2>
+            <Link href="/models" className="text-xs text-gray-400 hover:text-gray-800 transition-colors">
+              查看完整 &rarr;
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+            {domainOrder.map(domain => {
+              const meta = domainMeta[domain]
+              const top = top1ByDomain.get(domain)
+              const scoreText =
+                typeof top?.score === 'number'
+                  ? `${Math.round(top.score)}`
+                  : top?.score_label === 'Rank'
+                    ? `#${(top as any)?.metadata?.arena_math_rank ?? 1}`
+                    : '—'
+              return (
+                <div key={domain}>
+                  <div className="text-[11px] text-gray-400 tracking-wider mb-2 uppercase">{meta.en}</div>
+                  <div className="text-sm font-medium text-gray-800 truncate">{top?.model_name || '—'}</div>
+                  {top && <div className="font-mono text-[11px] text-gray-400 mt-0.5">{scoreText}</div>}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col gap-4 mb-8">
+        {/* Row 1: search + category pills */}
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="relative flex-shrink-0">
+            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="search" placeholder="搜索..." inputMode="search"
+              value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              className="pl-9 pr-4 py-1.5 text-sm bg-gray-100/50 border border-transparent rounded-full focus:bg-white focus:border-gray-300 outline-none w-48 transition-all text-gray-600 placeholder-gray-400"
+            />
+          </div>
+          <div className="min-w-0 flex-1 overflow-x-auto scrollbar-hide">
+            <CategoryFilter selected={selectedCategory} onSelect={setSelectedCategory} counts={categoryCounts} />
+          </div>
         </div>
-        <div className="min-w-0 flex-1 overflow-x-auto scrollbar-hide">
-          <CategoryFilter selected={selectedCategory} onSelect={setSelectedCategory} counts={categoryCounts} />
-        </div>
-      </section>
-      {/* Filter row 2 */}
-      <section className="flex flex-wrap items-center gap-4 mb-6">
-        <select
-          value={sourceFilter}
-          onChange={e => setSourceFilter(e.target.value)}
-          className="bg-white border border-[#EAEAEA] rounded-lg px-2.5 py-1.5 text-[0.82rem] text-[#171717] outline-none focus:border-black transition-colors appearance-none pr-7 bg-no-repeat bg-[right_8px_center] bg-[length:12px_12px]"
-          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")` }}
-        >
-          <option value="all">全部来源</option>
-            {sourceList.map(([slug, name]) => (
-              <option key={slug} value={slug}>{name}</option>
+
+        {/* Row 2: source + importance + sort */}
+        <div className="flex justify-between items-center py-4 border-t border-gray-100 text-xs text-gray-500">
+          <div className="flex items-center gap-1.5">
+            <select
+              value={sourceFilter} onChange={e => setSourceFilter(e.target.value)}
+              className="bg-transparent border-0 text-xs text-gray-500 outline-none appearance-none cursor-pointer hover:text-gray-900 transition-colors max-w-[60px]"
+            >
+              <option value="all">全部来源</option>
+              {sourceList.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
+            </select>
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-gray-400">重要性 &ge;</span>
+              <input type="range" className="score-slider w-20" min={1} max={9} value={minScore}
+                onChange={e => setMinScore(parseInt(e.target.value))} />
+              <span className="text-gray-900 font-medium w-3 text-center">{minScore}</span>
+            </div>
+          </div>
+
+          <div className="flex gap-4 items-center">
+            {(['importance', 'time'] as SortMode[]).map(mode => (
+              <button type="button" key={mode} onClick={() => setSortMode(mode)}
+                className={`text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 rounded-sm ${sortMode === mode ? 'text-gray-900 font-medium' : 'text-gray-400 hover:text-gray-900'}`}>
+                {mode === 'importance' ? '重要性排序' : '最新排序'}
+              </button>
             ))}
-        </select>
-
-        <div className="flex items-center gap-2 text-[0.82rem] text-[#666]">
-          <label className="whitespace-nowrap">重要性 ≥</label>
-          <input
-            type="range"
-            className="score-slider w-[120px]"
-            min={1} max={9}
-            value={minScore}
-            onChange={e => setMinScore(parseInt(e.target.value))}
-          />
-          <span className="font-mono text-[0.78rem] text-black min-w-[20px]">{minScore}</span>
+            <span className="text-[11px] text-gray-300">{filtered.length}/{articles.length}</span>
+          </div>
         </div>
+      </div>
 
-        <div className="flex gap-1 ml-auto">
-          <button
-            onClick={() => setSortMode('importance')}
-            className={`px-2.5 py-1 rounded text-xs font-medium border transition-all ${
-              sortMode === 'importance' ? 'border-black text-black' : 'border-[#EAEAEA] text-[#666] hover:border-[#666]'
-            }`}
-          >
-            按重要性
-          </button>
-          <button
-            onClick={() => setSortMode('time')}
-            className={`px-2.5 py-1 rounded text-xs font-medium border transition-all ${
-              sortMode === 'time' ? 'border-black text-black' : 'border-[#EAEAEA] text-[#666] hover:border-[#666]'
-            }`}
-          >
-            按时间
-          </button>
-        </div>
-
-        <span className="font-mono text-[0.78rem] text-[#999]">
-          {filtered.length} / {articles.length} 条
-        </span>
-      </section>
-      {/* Article list */}
+      {/* Articles */}
       {filtered.length === 0 ? (
-        <div className="text-center py-20 text-[#999]">
-          <p className="text-lg mb-1">暂无匹配资讯</p>
-          <p className="text-sm">请降低过滤条件或等待下次抓取</p>
+        <div className="text-center py-28">
+          <p className="text-[0.88rem] text-gray-400">暂无匹配资讯</p>
         </div>
       ) : (
-        <section className="flex flex-col">
+        <div className="space-y-10">
           {paged.map((a, i) => {
             const isExpanded = expandedIds.has(a.id)
             const time = a.published_at ? getTimeAgo(new Date(a.published_at)) : ''
             return (
-              <div
+              <article
                 key={a.id}
-                className={`article-row cursor-pointer border-b border-[#F0F0F0] transition-colors ${
-                  isExpanded ? 'bg-[#FAFAFA]' : 'hover:bg-[#F5F5F5]'
-                } ${i === 0 ? 'border-t border-t-[#F0F0F0]' : ''}`}
-                style={{ animationDelay: `${i * 0.03}s` }}
+                className="flex gap-6 group cursor-pointer"
                 onClick={() => setExpandedIds(prev => {
                   const next = new Set(prev)
-                  if (next.has(a.id)) next.delete(a.id)
-                  else next.add(a.id)
+                  next.has(a.id) ? next.delete(a.id) : next.add(a.id)
                   return next
                 })}
               >
-                <div className="grid grid-cols-[48px_1fr_auto_auto_auto] items-center gap-4 px-4 py-3 max-sm:grid-cols-[40px_1fr_auto] max-sm:gap-2.5">
-                  {/* Score */}
-                  <div className={`font-mono text-[0.85rem] font-semibold w-10 h-7 flex items-center justify-center rounded ${scoreClass(a.importance_score)}`}>
+                {/* Score badge */}
+                <div className="pt-1">
+                  <span className={`flex items-center justify-center w-7 h-7 rounded text-sm font-semibold ${scoreColor(a.importance_score)}`}>
                     {a.importance_score}
-                  </div>
-                  {/* Title */}
-                  <div className="min-w-0">
-                    <div className={`text-[0.92rem] font-medium text-[#171717] leading-snug ${isExpanded ? '' : 'truncate'}`}>
-                      {a.title}
-                    </div>
-                  </div>
-                  {/* Source */}
-                  <span className="hidden sm:inline font-mono text-[0.72rem] font-medium text-[#666] bg-black/[0.04] px-2 py-0.5 rounded whitespace-nowrap">
-                    {a.source_name}
                   </span>
-                  {/* Category */}
-                  <span className="hidden sm:inline text-[0.72rem] font-medium px-2.5 py-0.5 rounded-full border border-[#EAEAEA] text-[#666] whitespace-nowrap">
-                    {categoryLabel(a.content_category)}
-                  </span>
-                  {/* Time + chevron */}
-                  <div className="flex items-center gap-2">
-                    <span className="hidden sm:inline font-mono text-[0.72rem] text-[#999] whitespace-nowrap">{time}</span>
-                    <svg className={`w-4 h-4 stroke-[#999] transition-transform ${isExpanded ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </div>
                 </div>
-                {/* Expanded panel */}
-                {isExpanded && (
-                  <div className="px-4 pb-3 pt-1">
-                    <p className="text-[0.85rem] leading-relaxed text-[#666] mb-3 pl-[calc(48px+1rem)] max-sm:pl-[calc(40px+0.6rem)]">
-                      {a.summary_zh}
-                    </p>
-                    <div className="ml-[calc(48px+1rem)] max-sm:ml-[calc(40px+0.6rem)] border-l-2 border-[#0070F3] bg-[#0070F3]/[0.04] rounded-r px-4 py-2.5">
-                      <div className="font-mono text-[0.68rem] font-semibold text-[#0070F3] tracking-wide uppercase mb-1">
-                        WHY IT MATTERS
-                      </div>
-                      <p className="text-[0.82rem] leading-relaxed text-[#171717]">
-                        {a.why_it_matters}
+                {/* Content */}
+                <div className="flex-1">
+                  <h3 className="text-lg font-medium text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                    {a.title}
+                  </h3>
+                  <div className="text-[13px] text-gray-500 mb-3 flex items-center gap-2">
+                    <span>{a.source_name}</span>
+                    <span className="w-1 h-1 rounded-full bg-gray-300" />
+                    <span>{categoryLabel(a.content_category)}</span>
+                    {time && <>
+                      <span className="w-1 h-1 rounded-full bg-gray-300" />
+                      <span>{time}</span>
+                    </>}
+                  </div>
+
+                  {/* Expanded content */}
+                  {isExpanded && (
+                    <div className="space-y-4">
+                      <p className="text-[15px] text-gray-600 leading-relaxed">
+                        {a.summary_zh}
                       </p>
-                    </div>
-                    {a.url && (
-                      <div className="mt-2 pl-[calc(48px+1rem)] max-sm:pl-[calc(40px+0.6rem)]">
-                        <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-[0.78rem] text-[#0070F3] hover:underline">
+                      <div className="border-l-2 border-gray-200 pl-4">
+                        <p className="font-mono text-[0.72rem] text-gray-400 uppercase tracking-[0.1em] mb-2">Why it matters</p>
+                        <p className="text-[15px] text-gray-600 leading-relaxed">{a.why_it_matters}</p>
+                      </div>
+                      {a.url && (
+                        <a
+                          href={a.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="inline-block text-[13px] text-blue-600 hover:underline underline-offset-2"
+                        >
                           阅读原文 →
                         </a>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </article>
             )
           })}
-        </section>
+        </div>
       )}
 
       {/* Pagination */}
@@ -271,56 +307,22 @@ export default function DashboardClient({ articles, latestDigest }: Props) {
         const startItem = (safePage - 1) * PAGE_SIZE + 1
         const endItem = Math.min(safePage * PAGE_SIZE, filtered.length)
         return (
-          <section className="flex items-center justify-between mt-6 pb-4 text-[0.78rem]">
-            <span className="text-[#999]">
-              显示 {startItem}-{endItem} 条，共 {filtered.length} 条
-            </span>
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => { setCurrentPage(1); setExpandedIds(new Set()) }}
+          <div className="flex items-center justify-between mt-10 py-4 border-t border-gray-200">
+            <span className="font-mono text-[0.72rem] text-gray-300">{startItem}–{endItem} / {filtered.length}</span>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); setExpandedIds(new Set()) }}
                 disabled={safePage <= 1}
-                className="w-7 h-7 flex items-center justify-center rounded border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                «
+                className="font-mono text-[0.75rem] text-gray-500 hover:text-gray-900 disabled:opacity-25 disabled:cursor-not-allowed transition-colors px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 rounded-sm">
+                ← 上一页
               </button>
-              <button
-                onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); setExpandedIds(new Set()) }}
-                disabled={safePage <= 1}
-                className="w-7 h-7 flex items-center justify-center rounded border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                ‹
-              </button>
-              <div className="flex items-center gap-1 px-1">
-                <span className="text-[#666]">第</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={totalPages}
-                  value={safePage}
-                  onChange={e => {
-                    const v = parseInt(e.target.value)
-                    if (v >= 1 && v <= totalPages) { setCurrentPage(v); setExpandedIds(new Set()) }
-                  }}
-                  className="w-10 h-7 text-center font-mono text-[0.78rem] border border-[#EAEAEA] rounded outline-none focus:border-black transition-colors"
-                />
-                <span className="text-[#666]">/ {totalPages} 页</span>
-              </div>
-              <button
-                onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); setExpandedIds(new Set()) }}
+              <span className="font-mono text-[0.68rem] text-gray-300 px-2">{safePage} / {totalPages}</span>
+              <button type="button" onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); setExpandedIds(new Set()) }}
                 disabled={safePage >= totalPages}
-                className="w-7 h-7 flex items-center justify-center rounded border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                ›
-              </button>
-              <button
-                onClick={() => { setCurrentPage(totalPages); setExpandedIds(new Set()) }}
-                disabled={safePage >= totalPages}
-                className="w-7 h-7 flex items-center justify-center rounded border border-[#EAEAEA] text-[#666] hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                »
+                className="font-mono text-[0.75rem] text-gray-500 hover:text-gray-900 disabled:opacity-25 disabled:cursor-not-allowed transition-colors px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 rounded-sm">
+                下一页 →
               </button>
             </div>
-          </section>
+          </div>
         )
       })()}
     </div>

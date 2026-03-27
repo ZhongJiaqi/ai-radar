@@ -22,7 +22,7 @@ module.exports = {
         tertiary: '#999999',
       },
       fontFamily: {
-        body: ['var(--font-ibm-plex-sans)', 'IBM Plex Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sans: ['var(--font-inter)', 'Inter', '-apple-system', 'BlinkMacSystemFont', '"PingFang SC"', '"Helvetica Neue"', 'STHeiti', '"Microsoft Yahei"', 'Tahoma', 'Simsun', 'sans-serif'],
         mono: ['var(--font-ibm-plex-mono)', 'IBM Plex Mono', 'SF Mono', 'Fira Code', 'monospace'],
       },
     },

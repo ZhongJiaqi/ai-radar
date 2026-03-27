@@ -2,74 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-/* === Vercel Light Theme === */
-
-:root {
-  --bg: #FFFFFF;
-  --bg-card: #FAFAFA;
-  --bg-hover: #F5F5F5;
-  --accent: #0070F3;
-  --accent-hover: #005cc5;
-  --text-primary: #171717;
-  --text-secondary: #666666;
-  --text-tertiary: #999999;
-  --border: #EAEAEA;
-  --border-light: #F0F0F0;
-  --radius: 8px;
-  --transition: 150ms ease;
+body {
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", STHeiti, "Microsoft Yahei", Tahoma, Simsun, sans-serif;
 }
 
-/* Scrollbar — light */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #FAFAFA; }
-::-webkit-scrollbar-thumb { background: #D4D4D4; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #A3A3A3; }
+:root {
+  --bg: #FCFCFD;
+  --bg-card: #FFFFFF;
+  --text-primary: #1A1A1A;
+  --text-secondary: #555555;
+  --text-tertiary: #6B7280;
+  --text-muted: #9CA3AF;
+  --border: #E5E7EB;
+  --border-light: #F3F4F6;
+  --accent: #0070F3;
+}
 
-/* === Article row expand animation === */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #DDDDD8; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #BBBBAA; }
+
+/* Article row animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes panelExpand {
+  from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .article-row {
   opacity: 0;
-  transform: translateY(6px);
-  animation: fadeIn 0.3s forwards;
+  animation: fadeUp 0.25s ease-out forwards;
+}
+.panel-expand {
+  animation: panelExpand 0.18s ease-out forwards;
 }
 
-/* Hide scrollbar for category filter */
+@media (prefers-reduced-motion: reduce) {
+  .article-row, .panel-expand {
+    animation: none; opacity: 1; transform: none;
+  }
+}
+
+/* Hide scrollbar */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* Score slider */
 input[type="range"].score-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  outline: none;
+  -webkit-appearance: none; appearance: none;
+  height: 2px; background: #E8E8E6; border-radius: 1px; outline: none;
 }
 input[type="range"].score-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  background: #000;
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 1px var(--border);
-  cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #111; cursor: pointer;
 }
 
-/* === Markdown digest styles (light theme) === */
-.prose-light h1 { @apply text-2xl font-bold text-[#171717] mt-6 mb-3; }
-.prose-light h2 { @apply text-xl font-semibold text-[#171717] mt-8 mb-3 border-b border-[#EAEAEA] pb-2; }
-.prose-light h3 { @apply text-lg font-semibold text-[#171717] mt-6 mb-2; }
-.prose-light h4 { @apply text-base font-medium text-[#0070F3] mt-4 mb-1; }
-.prose-light p  { @apply text-[#666666] leading-relaxed mb-3; }
-.prose-light a  { @apply text-[#0070F3] hover:text-[#005cc5] underline-offset-2 hover:underline; }
-.prose-light ul { @apply list-disc list-inside text-[#666666] space-y-1 mb-3; }
-.prose-light hr { @apply border-[#EAEAEA] my-3; }
-.prose-light blockquote { @apply border-l-2 border-[#0070F3] pl-4 text-[#666666] italic bg-[#F5F5F5] py-2 rounded-r; }
-.prose-light code { @apply bg-[#F5F5F5] px-1.5 py-0.5 rounded text-sm text-[#171717] font-mono; }
-.prose-light strong { @apply text-[#171717] font-semibold; }
+/* Digest markdown */
+.prose-light h1 { @apply text-[1.5rem] font-semibold text-[#111] mt-8 mb-4 tracking-tight leading-tight; }
+.prose-light h2 { @apply text-[1.05rem] font-semibold text-[#111] mt-10 mb-3 pb-3 border-b border-[#EBEBEA]; }
+.prose-light h3 { @apply text-[0.92rem] font-semibold text-[#111] mt-6 mb-2; }
+.prose-light h4 { @apply font-mono text-[0.8rem] text-[#0070F3] uppercase tracking-[0.12em] mt-5 mb-2; }
+.prose-light p  { @apply text-[0.88rem] text-[#555] leading-[1.75] mb-4; }
+.prose-light a  { @apply text-[#0070F3] hover:underline underline-offset-2; }
+.prose-light ul { @apply list-disc list-outside pl-4 text-[#555] space-y-1.5 mb-4 text-[0.88rem] leading-[1.7]; }
+.prose-light hr { @apply border-[#EBEBEA] my-8; }
+.prose-light blockquote { @apply border-l-2 border-[#DDDDD8] pl-4 text-[#777] italic py-1 my-4; }
+.prose-light code { @apply bg-[#F2F2F0] px-1.5 py-0.5 rounded text-[0.78rem] text-[#333] font-mono; }
+.prose-light strong { @apply text-[#111] font-semibold; }
