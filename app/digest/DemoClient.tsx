@@ -69,7 +69,7 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
       <main style={{ maxWidth: 'var(--content-width)', margin: '0 auto', padding: '0 1.5rem' }}>
 
         {/* ── 今日要点 ── */}
-        <section style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-xl)' }}>
+        <section style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-2xl)' }}>
           <Reveal>
             <p style={{ fontSize: 'var(--text-xs)', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 500, marginBottom: 'var(--space-sm)' }}>
               {digestDate || new Date().toISOString().slice(0, 10)}
