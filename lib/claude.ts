@@ -17,7 +17,7 @@ function normalizeAnthropicBaseURL(raw: string): string {
 export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
   baseURL: normalizeAnthropicBaseURL(
-    process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com'
+    process.env.LLM_BASE_URL || process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com'
   ),
 })
 

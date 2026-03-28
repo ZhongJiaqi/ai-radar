@@ -1,8 +1,8 @@
 // ======================================================
-// AI Radar - LLM Processor (Anthropic Claude API)
+// AI Radar - LLM Processor (Generic LLM Provider)
 // ======================================================
 
-import { anthropic, HAIKU_MODEL, SONNET_MODEL } from '../claude'
+import { generateJson } from '../llm'
 import { createServiceClient } from '../supabase'
 import { SOURCE_CONFIGS } from '../crawlers/sources'
 import { CATEGORY_LABELS } from '../i18n/categories'
@@ -17,8 +17,6 @@ const SYSTEM_PROMPT = `你是 AI Radar 的内容分析师，专注于全球 AI �
 const CATEGORY_PROMPT_LIST = CONTENT_CATEGORIES
   .map(slug => `${slug} (${CATEGORY_LABELS[slug].zh})`)
   .join(' / ')
-
-const unavailableModels = new Set<string>()
 
 function sanitizeContent(text: string): string {
   return text
@@ -65,24 +63,6 @@ function heuristicFallback(title: string, content: string, sourceCategory: strin
   }
 }
 
-async function callWithRetry<T>(
-  fn: () => Promise<T>,
-  retries = 3,
-  shouldRetryFn: (err: unknown) => boolean = () => true
-): Promise<T> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await fn()
-    } catch (err) {
-      if (i === retries - 1 || !shouldRetryFn(err)) throw err
-      const delay = Math.pow(2, i) * 1000
-      console.warn(`[LLM] Retry ${i + 1}/${retries} after ${delay}ms...`)
-      await new Promise(r => setTimeout(r, delay))
-    }
-  }
-  throw new Error('Unreachable')
-}
-
 const toErrText = (err: unknown): string => {
   if (err && typeof err === 'object') {
     const anyErr = err as any
@@ -96,124 +76,49 @@ const toErrText = (err: unknown): string => {
   return String(err)
 }
 
-const isModelUnavailableError = (err: unknown): boolean => {
-  if (err && typeof err === 'object') {
-    const anyErr = err as any
-    const t =
-      anyErr?.error?.error?.type ??
-      anyErr?.error?.type ??
-      anyErr?.type
-    if (t === 'model_not_found') return true
-  }
-  const msg = toErrText(err).toLowerCase()
-  return msg.includes('model_not_found') || msg.includes('no available channel for model')
-}
-
-const shouldRetry = (err: unknown): boolean => {
-  const anyErr = err as any
-  const status = anyErr?.status
-  // 4xx (except rate limit) are usually config errors; retrying wastes time.
-  if (typeof status === 'number' && status >= 400 && status < 500 && status !== 429) {
-    return false
-  }
-  // Model unavailable is not transient.
-  if (isModelUnavailableError(err)) return false
-  return true
-}
-
 export async function processArticle(
   title: string,
   content: string,
   sourceCategory: string
 ): Promise<{ result: LLMResult; modelUsed: string }> {
-  const modelCandidates = Array.from(
-    new Set(
-      [
-        HAIKU_MODEL,
-        SONNET_MODEL,
-        // Hard fallback: a known-good model for gateways where env-configured models are missing.
-        'claude-sonnet-4-5-20250929',
-        // Wider compatibility fallbacks for gateways that don't expose 4.x model ids.
-        'claude-3-5-haiku-20241022',
-        'claude-3-5-sonnet-20241022',
-      ]
-        .filter(Boolean)
-        .filter(m => !unavailableModels.has(m))
-    )
-  )
+  try {
+    const response = await generateJson({
+      task: 'article',
+      prompt: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(title, content, sourceCategory)}`,
+      maxTokens: 512,
+    })
 
-  const modelsToTry = modelCandidates.length > 0
-    ? modelCandidates
-    : [
-      // If we filtered everything out, keep at least one attempt before falling back.
-      'claude-3-5-haiku-20241022',
-    ]
-
-  let lastErr: unknown = null
-  for (const model of modelsToTry) {
-    try {
-      const response = await callWithRetry(
-        () =>
-          anthropic.messages.create({
-            model,
-            max_tokens: 512,
-            messages: [
-              {
-                role: 'user',
-                // Right Code/Claude 网关对 messages.content 的兼容性更好：使用标准 content blocks。
-                content: [
-                  {
-                    type: 'text',
-                    text: `${SYSTEM_PROMPT}\n\n${buildUserPrompt(title, content, sourceCategory)}`,
-                  },
-                ],
-              },
-            ],
-          }),
-        3,
-        shouldRetry
-      )
-
-      const text = response.content[0]?.type === 'text' ? response.content[0].text : ''
-
-      // Parse JSON from response
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) {
-        throw new Error(`LLM returned invalid JSON: ${text.slice(0, 200)}`)
-      }
-
-      const parsed = JSON.parse(jsonMatch[0])
-
-      // Validate and sanitize
-      const category = CONTENT_CATEGORIES.includes(parsed.category)
-        ? parsed.category as ContentCategory
-        : 'industry_news'
-
-      const score = Math.max(1, Math.min(10, Math.round(Number(parsed.importance_score) || 5)))
-
-      return {
-        modelUsed: model,
-        result: {
-          summary_zh: String(parsed.summary_zh || '').slice(0, 500),
-          category,
-          tags: Array.isArray(parsed.tags)
-            ? parsed.tags.slice(0, 8).map(String)
-            : [],
-          importance_score: score,
-          why_it_matters: String(parsed.why_it_matters || '').slice(0, 300),
-        },
-      }
-    } catch (err) {
-      lastErr = err
-      if (isModelUnavailableError(err)) unavailableModels.add(model)
-      console.warn(`[LLM] processArticle failed with model=${model}: ${toErrText(err)}`)
+    const jsonMatch = response.text.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      throw new Error(`LLM returned invalid JSON: ${response.text.slice(0, 200)}`)
     }
-  }
 
-  console.warn(
-    `[LLM] processArticle fallback: all models failed (${modelsToTry.join(', ')}); using heuristic result: ${toErrText(lastErr)}`
-  )
-  return { modelUsed: 'fallback', result: heuristicFallback(title, content, sourceCategory) }
+    const parsed = JSON.parse(jsonMatch[0])
+
+    const category = CONTENT_CATEGORIES.includes(parsed.category)
+      ? parsed.category as ContentCategory
+      : 'industry_news'
+
+    const score = Math.max(1, Math.min(10, Math.round(Number(parsed.importance_score) || 5)))
+
+    return {
+      modelUsed: response.modelUsed,
+      result: {
+        summary_zh: String(parsed.summary_zh || '').slice(0, 500),
+        category,
+        tags: Array.isArray(parsed.tags)
+          ? parsed.tags.slice(0, 8).map(String)
+          : [],
+        importance_score: score,
+        why_it_matters: String(parsed.why_it_matters || '').slice(0, 300),
+      },
+    }
+  } catch (err) {
+    console.warn(
+      `[LLM] processArticle fallback: using heuristic result after provider error: ${toErrText(err)}`
+    )
+    return { modelUsed: 'fallback', result: heuristicFallback(title, content, sourceCategory) }
+  }
 }
 
 // ---- Batch processor ----
