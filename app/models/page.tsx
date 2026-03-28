@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { createPublicClient } from '@/lib/supabase'
 import type { ModelDomain, ModelRankingRow } from '@/lib/rankings/types'
 
-export const revalidate = 3600
+export const revalidate = 60
 
 const DOMAIN_META: Record<ModelDomain, { zh: string; en: string; hint: string }> = {
   coding: { zh: '编程', en: 'Coding', hint: '代码能力与工程任务' },

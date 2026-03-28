@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import type { EnrichedArticle } from '@/lib/types'
 import type { ModelRankingRow } from '@/lib/rankings/types'
 
-export const revalidate = 300 // Revalidate every 5 minutes
+export const revalidate = 60 // Revalidate every minute
 
 async function getArticles(): Promise<EnrichedArticle[]> {
   const supabase = createPublicClient()
