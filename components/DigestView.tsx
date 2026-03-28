@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { pangu } from '@/lib/utils/pangu'
 
 interface Props {
   markdown: string
@@ -42,7 +43,7 @@ export default function DigestView({ markdown, date }: Props) {
           {copied ? 'Copied' : 'Copy MD'}
         </button>
       </div>
-      <div className="prose-light max-w-none" dangerouslySetInnerHTML={{ __html: renderMarkdown(markdown) }} />
+      <div className="prose-light max-w-none" dangerouslySetInnerHTML={{ __html: renderMarkdown(pangu(markdown)) }} />
     </div>
   )
 }

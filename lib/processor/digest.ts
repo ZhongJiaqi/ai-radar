@@ -8,13 +8,7 @@ import { generateText } from '../llm'
 import { createServiceClient } from '../supabase'
 import { categoryLabel } from '../i18n/categories'
 import type { EnrichedArticle, DigestStats, ContentCategory } from '../types'
-
-/** Insert spaces between CJK and Latin/digit characters (pangu spacing) */
-function pangu(text: string): string {
-  return text
-    .replace(/([\u4e00-\u9fff\u3400-\u4dbf])([A-Za-z0-9])/g, '$1 $2')
-    .replace(/([A-Za-z0-9])([\u4e00-\u9fff\u3400-\u4dbf])/g, '$1 $2')
-}
+import { pangu } from '../utils/pangu'
 
 const CATEGORY_EMOJI: Record<ContentCategory, string> = {
   model_release: '🚀',

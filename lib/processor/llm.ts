@@ -8,6 +8,7 @@ import { SOURCE_CONFIGS } from '../crawlers/sources'
 import { CATEGORY_LABELS } from '../i18n/categories'
 import { CONTENT_CATEGORIES } from '../types'
 import type { LLMResult, ContentCategory } from '../types'
+import { pangu } from '../utils/pangu'
 
 const SYSTEM_PROMPT = `你是 AI Radar 的内容分析师，专注于全球 AI 行业动态。
 你的任务是分析 AI 相关文章，为中国 AI 从业者（产品经理、开发者、创业者）提取关键信息。
@@ -104,13 +105,13 @@ export async function processArticle(
     return {
       modelUsed: response.modelUsed,
       result: {
-        summary_zh: String(parsed.summary_zh || '').slice(0, 500),
+        summary_zh: pangu(String(parsed.summary_zh || '').slice(0, 500)),
         category,
         tags: Array.isArray(parsed.tags)
           ? parsed.tags.slice(0, 8).map(String)
           : [],
         importance_score: score,
-        why_it_matters: String(parsed.why_it_matters || '').slice(0, 300),
+        why_it_matters: pangu(String(parsed.why_it_matters || '').slice(0, 300)),
       },
     }
   } catch (err) {

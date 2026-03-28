@@ -7,6 +7,7 @@ import { categoryLabel } from '@/lib/i18n/categories'
 import { SOURCE_CONFIGS } from '@/lib/crawlers/sources'
 import type { EnrichedArticle, ContentCategory, SourceCategory } from '@/lib/types'
 import type { ModelDomain, ModelRankingRow } from '@/lib/rankings/types'
+import { pangu } from '@/lib/utils/pangu'
 
 interface Props {
   articles: EnrichedArticle[]
@@ -144,7 +145,7 @@ export default function DashboardClient({ articles, latestDigest, modelRankings 
                 return (
                   <li key={i} className="flex gap-3">
                     <span className="text-gray-300 mt-0.5 flex-shrink-0">•</span>
-                    <span>{cleanLine}</span>
+                    <span>{pangu(cleanLine)}</span>
                   </li>
                 )
               })}
@@ -262,7 +263,7 @@ export default function DashboardClient({ articles, latestDigest, modelRankings 
                 {/* Content */}
                 <div className="flex-1">
                   <h3 className="text-lg font-medium text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                    {a.title}
+                    {pangu(a.title)}
                   </h3>
                   <div className="text-[13px] text-gray-500 mb-3 flex items-center gap-2">
                     <span>{a.source_name}</span>
@@ -278,11 +279,11 @@ export default function DashboardClient({ articles, latestDigest, modelRankings 
                   {isExpanded && (
                     <div className="space-y-4">
                       <p className="text-[15px] text-gray-600 leading-relaxed">
-                        {a.summary_zh}
+                        {pangu(a.summary_zh)}
                       </p>
                       <div className="border-l-2 border-gray-200 pl-4">
                         <p className="font-mono text-[0.72rem] text-gray-400 uppercase tracking-[0.1em] mb-2">Why it matters</p>
-                        <p className="text-[15px] text-gray-600 leading-relaxed">{a.why_it_matters}</p>
+                        <p className="text-[15px] text-gray-600 leading-relaxed">{pangu(a.why_it_matters)}</p>
                       </div>
                       {a.url && (
                         <a
