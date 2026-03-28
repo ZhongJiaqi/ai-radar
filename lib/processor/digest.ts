@@ -117,7 +117,7 @@ async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<st
 
   const prompt = `你是 AI 行业分析师，面向中国 AI 从业者（产品经理、开发者、创业者）撰写每日要点。
 
-基于以下今日资讯，提炼 3-5 个最值得关注的要点。
+基于以下今日资讯，提炼 3-4 个最值得关注的要点。
 
 写作要求：
 - 每个要点一行，50-80 字，中英文之间加空格
