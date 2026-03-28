@@ -7,10 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:e2e": "playwright test",
     "db:push": "supabase db push",
     "crawl": "npx tsx scripts/crawl.ts",
     "process": "npx tsx scripts/process.ts",
-    "digest": "npx tsx scripts/digest.ts"
+    "digest": "npx tsx scripts/digest.ts",
+    "rankings": "npx tsx scripts/rankings.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -28,6 +30,7 @@
     "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
