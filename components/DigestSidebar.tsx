@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 
 interface DigestEntry {
@@ -11,36 +10,38 @@ interface DigestEntry {
 export default function DigestSidebar({ digests }: { digests: DigestEntry[] }) {
   const pathname = usePathname()
   const router = useRouter()
-
-  // Extract current date from pathname: /digest/2026-03-28 or /digest (latest)
   const currentDate = pathname.match(/\/digest\/(\d{4}-\d{2}-\d{2})/)?.[1] || digests[0]?.date
 
   return (
-    <aside className="w-44 flex-shrink-0">
-      <Link href="/" className="font-mono text-[11px] text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-widest">
-        ← News
-      </Link>
-      <h2 className="text-[13px] font-semibold text-gray-500 mt-6 mb-3">往期简报</h2>
-      <nav className="flex flex-col gap-0.5">
+    <aside style={{ width: '8.5rem', flexShrink: 0, paddingTop: 'var(--space-sm)' }}>
+      <p style={{ fontSize: 'var(--text-xs)', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 500, marginBottom: 'var(--space-lg)' }}>
+        Archive
+      </p>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {digests.map(d => {
           const isActive = d.date === currentDate
           return (
             <a
               key={d.date}
               href={`/digest/${d.date}`}
-              onClick={(e) => {
-                e.preventDefault()
-                router.push(`/digest/${d.date}`)
-                router.refresh()
+              onClick={(e) => { e.preventDefault(); router.push(`/digest/${d.date}`); router.refresh() }}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '0.375rem 0.5rem', borderRadius: '4px',
+                fontSize: 'var(--text-sm)', cursor: 'pointer',
+                color: isActive ? 'var(--text-body)' : 'var(--text-muted)',
+                fontWeight: isActive ? 600 : 400,
+                background: isActive ? 'var(--accent-subtle)' : 'transparent',
+                borderLeft: isActive ? '2px solid var(--accent)' : '2px solid transparent',
+                transition: 'background 200ms ease, color 200ms ease',
               }}
-              className={`flex items-center justify-between py-1.5 px-2 rounded-md text-[13px] transition-colors cursor-pointer ${
-                isActive
-                  ? 'bg-gray-100 text-gray-900 font-medium'
-                  : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
-              }`}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(0,0,0,0.02)' }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
             >
               <span>{d.date.slice(5)}</span>
-              <span className="font-mono text-[10px] text-gray-400">{d.total}</span>
+              <span style={{ fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', fontVariantNumeric: 'tabular-nums' }}>
+                {d.total}
+              </span>
             </a>
           )
         })}

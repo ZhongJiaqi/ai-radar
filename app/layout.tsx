@@ -1,28 +1,35 @@
 import type { Metadata } from 'next'
-import { IBM_Plex_Mono, Inter } from 'next/font/google'
+import { Outfit, Newsreader, JetBrains_Mono } from 'next/font/google'
 import Link from 'next/link'
 import './globals.css'
 import NavClock from '@/components/NavClock'
 import NavLinks from '@/components/NavLinks'
 import { getSiteUrl } from '@/lib/site'
 
-const inter = Inter({
+const outfit = Outfit({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-inter',
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-outfit',
 })
 
-const ibmPlexMono = IBM_Plex_Mono({
+const newsreader = Newsreader({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-ibm-plex-mono',
+  weight: ['400', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-newsreader',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono-jb',
 })
 
 const siteUrl = getSiteUrl()
 
 export const metadata: Metadata = {
   title: {
-    default: 'AI RADAR — 全球 AI 资讯聚合平台',
+    default: 'AI News — Daily AI Briefing',
     template: '%s | AI RADAR',
   },
   description: '每日聚合分析全球最重要的 AI 资讯，帮助 AI 从业者在 3 分钟内掌握行业动态',
@@ -31,13 +38,13 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'zh_CN',
     siteName: 'AI RADAR',
-    title: 'AI RADAR — 全球 AI 资讯聚合平台',
+    title: 'AI News — Daily AI Briefing',
     description: '每日聚合分析全球最重要的 AI 资讯，帮助 AI 从业者在 3 分钟内掌握行业动态',
     url: siteUrl,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI RADAR — 全球 AI 资讯聚合平台',
+    title: 'AI News — Daily AI Briefing',
     description: '每日聚合分析全球最重要的 AI 资讯，帮助 AI 从业者在 3 分钟内掌握行业动态',
   },
   robots: {
@@ -54,7 +61,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body
-        className={`${inter.variable} ${ibmPlexMono.variable} font-sans bg-[#FCFCFD] text-[#1A1A1A] min-h-screen`}
+        className={`${outfit.variable} ${newsreader.variable} ${jetbrainsMono.variable} font-sans bg-[#F7F6F3] text-[#2F3437] min-h-screen`}
       >
         <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/60 relative">
           <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -76,7 +83,7 @@ export default function RootLayout({
           {children}
         </main>
         <footer className="text-center py-8 font-mono text-[0.68rem] text-gray-400 border-t border-gray-200 mt-8 tracking-widest uppercase">
-          AI RADAR — Global AI insights, delivered daily
+          AI News — Daily AI Briefing
         </footer>
       </body>
     </html>

@@ -97,14 +97,14 @@ export async function generateMetadata(): Promise<Metadata> {
   const desc = `今日 ${total ?? 0} 条 AI 资讯，${highSignal ?? 0} 条高信号 — 3 分钟掌握全球 AI 动态`
 
   return {
-    title: 'AI RADAR — Global AI insights, delivered daily',
+    title: 'AI News — Daily AI Briefing',
     description: desc,
     openGraph: {
-      title: 'AI RADAR — Global AI insights, delivered daily',
+      title: 'AI News — Daily AI Briefing',
       description: desc,
     },
     twitter: {
-      title: 'AI RADAR — Global AI insights, delivered daily',
+      title: 'AI News — Daily AI Briefing',
       description: desc,
     },
   }

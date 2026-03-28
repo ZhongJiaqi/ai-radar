@@ -3,19 +3,54 @@
 @tailwind utilities;
 
 body {
-  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", STHeiti, "Microsoft Yahei", Tahoma, Simsun, sans-serif;
+  font-family: var(--font-outfit), 'Outfit', -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
 }
 
 :root {
-  --bg: #FCFCFD;
-  --bg-card: #FFFFFF;
-  --text-primary: #1A1A1A;
+  /* normalize: unified design tokens */
+  --bg: #F7F6F3;
+  --bg-surface: #FFFFFF;
+  --text-heading: #111111;
+  --text-body: #2F3437;
   --text-secondary: #555555;
-  --text-tertiary: #6B7280;
-  --text-muted: #9CA3AF;
-  --border: #E5E7EB;
-  --border-light: #F3F4F6;
-  --accent: #0070F3;
+  --text-muted: #787774;
+  --text-faint: #CCCCC6;
+  --border: #EAEAEA;
+  --accent: oklch(48% 0.1 230);         /* desaturated blue — links, article titles */
+  --accent-hover: oklch(62% 0.1 230);   /* lighter blue on hover */
+  --accent-subtle: oklch(95% 0.02 230); /* tinted surface for tags */
+  --warm: oklch(72% 0.08 75);           /* amber — time labels, highlights */
+  --warm-subtle: oklch(96% 0.02 75);    /* warm tinted bg */
+  --tint-green: oklch(94% 0.03 155);    /* subtle green for official sources */
+  --tint-green-text: oklch(45% 0.1 155);
+
+  /* typeset: type scale (1.25 ratio) */
+  --text-xs: 0.6875rem;   /* 11px — captions, meta */
+  --text-sm: 0.8125rem;   /* 13px — secondary */
+  --text-base: 0.9375rem; /* 15px — body */
+  --text-lg: 1.3rem;      /* headings */
+  --text-xl: 2.75rem;     /* display */
+
+  /* typeset: font stacks */
+  --font-serif: var(--font-newsreader), 'Newsreader', 'Georgia', serif;
+  --font-sans: var(--font-outfit), 'Outfit', -apple-system, 'Helvetica Neue', sans-serif;
+  --font-mono: var(--font-mono-jb), 'JetBrains Mono', 'SF Mono', monospace;
+
+  /* arrange: spacing scale */
+  --space-xs: 0.25rem;  /* 4px */
+  --space-sm: 0.5rem;   /* 8px */
+  --space-md: 1rem;     /* 16px */
+  --space-lg: 1.5rem;   /* 24px */
+  --space-xl: 3rem;     /* 48px */
+  --space-2xl: 5rem;    /* 80px */
+
+  /* normalize: layout */
+  --content-width: 700px;
+  --content-wide: 880px;
 }
 
 /* Scrollbar */
@@ -23,6 +58,11 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #DDDDD8; border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: #BBBBAA; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 /* Article row animation */
 @keyframes fadeUp {
@@ -63,16 +103,67 @@ input[type="range"].score-slider::-webkit-slider-thumb {
   background: #111; cursor: pointer;
 }
 
-/* Digest markdown */
+/* Digest markdown — normalized with design tokens */
+.digest-content h1 {
+  font-family: var(--font-serif);
+  font-size: 1.75rem; font-weight: 700; color: var(--text-heading);
+  margin: 2rem 0 1rem; line-height: 1.2; letter-spacing: -0.02em;
+}
+.digest-content h2 {
+  font-size: var(--text-base); font-weight: 600; color: var(--text-body);
+  margin: 2.5rem 0 0.75rem; padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.digest-content h3 {
+  font-size: var(--text-sm); font-weight: 600; color: var(--text-body);
+  margin: 1.5rem 0 0.5rem;
+}
+.digest-content h4 {
+  font-size: var(--text-base); font-weight: 600; color: var(--accent);
+  margin: 1.25rem 0 0.25rem; line-height: 1.4;
+  transition: color 200ms ease;
+}
+.digest-content h4 a { color: var(--accent); text-decoration: none; }
+.digest-content h4 a:hover { color: var(--accent-hover); text-decoration: underline; text-underline-offset: 3px; }
+.digest-content .source-line {
+  font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 0.75rem;
+}
+.digest-content p {
+  font-size: 0.875rem; color: var(--text-secondary); line-height: 1.8;
+  margin-bottom: 1rem; max-width: 65ch;
+}
+.digest-content a { color: var(--accent); transition: color 200ms ease; }
+.digest-content a:hover { color: var(--accent-hover); text-decoration: underline; text-underline-offset: 3px; }
+.digest-content ul {
+  list-style: disc; padding-left: 1rem; color: var(--text-secondary);
+  margin-bottom: 1rem; font-size: 0.875rem; line-height: 1.75;
+}
+.digest-content hr {
+  border: none; height: 1px; background: var(--border); margin: 2rem 0;
+}
+.digest-content blockquote {
+  border-left: 2px solid var(--border); padding-left: 1rem;
+  color: var(--text-muted); font-style: normal; margin: 1rem 0;
+  font-size: var(--text-xs);
+}
+.digest-content blockquote strong { color: var(--text-muted); font-weight: 600; }
+.digest-content code {
+  background: #EFEEE9; padding: 0.15rem 0.4rem; border-radius: 3px;
+  font-size: 0.78rem; color: var(--text-body); font-family: var(--font-mono);
+  font-weight: 400;
+}
+.digest-content strong { color: var(--text-body); font-weight: 600; }
+
+/* Legacy alias */
 .prose-light h1 { @apply text-[1.5rem] font-semibold text-[#111] mt-8 mb-4 tracking-tight leading-tight; }
 .prose-light h2 { @apply text-[1.05rem] font-semibold text-[#111] mt-10 mb-3 pb-3 border-b border-[#EBEBEA]; }
 .prose-light h3 { @apply text-[0.92rem] font-semibold text-[#111] mt-6 mb-2; }
-.prose-light h4 { @apply text-[0.95rem] font-semibold text-[#0070F3] mt-5 mb-1 leading-snug; }
+.prose-light h4 { @apply text-[0.95rem] font-semibold text-[#1F6C9F] mt-5 mb-1 leading-snug; }
 .prose-light .source-line { @apply text-[0.72rem] text-[#999] mb-3; }
 .prose-light p  { @apply text-[0.88rem] text-[#555] leading-[1.75] mb-4; }
-.prose-light a  { @apply text-[#0070F3] hover:underline underline-offset-2; }
+.prose-light a  { @apply text-[#1F6C9F] hover:underline underline-offset-2; }
 .prose-light ul { @apply list-disc list-outside pl-4 text-[#555] space-y-1.5 mb-4 text-[0.88rem] leading-[1.7]; }
 .prose-light hr { @apply border-[#EBEBEA] my-8; }
-.prose-light blockquote { @apply border-l-2 border-[#DDDDD8] pl-4 text-[#777] italic py-1 my-4; }
-.prose-light code { @apply bg-[#F2F2F0] px-1.5 py-0.5 rounded text-[0.78rem] text-[#333] font-mono; }
-.prose-light strong { @apply text-[#111] font-semibold; }
+.prose-light blockquote { @apply border-l-2 border-[#EAEAEA] pl-4 text-[#787774] italic py-1 my-4; }
+.prose-light code { @apply bg-[#F0EFEC] px-1.5 py-0.5 rounded text-[0.78rem] text-[#2F3437] font-mono; }
+.prose-light strong { @apply text-[#2F3437] font-semibold; }
