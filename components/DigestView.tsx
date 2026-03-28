@@ -33,7 +33,7 @@ function renderMarkdown(md: string): string {
 }
 
 function parseDigest(md: string): { headerMd: string; categories: CategorySection[] } {
-  const categoryStart = md.indexOf('## 📊 分类速览')
+  const categoryStart = md.indexOf('## 分类速览')
   if (categoryStart === -1) {
     return { headerMd: md, categories: [] }
   }
@@ -43,7 +43,7 @@ function parseDigest(md: string): { headerMd: string; categories: CategorySectio
 
   // Split by ### headings
   const parts = categorySection.split(/^(?=### )/m).filter(s => s.trim())
-  // First part is the "## 📊 分类速览" heading itself, skip it
+  // First part is the "## 分类速览" heading itself, skip it
   const categories: CategorySection[] = []
 
   for (const part of parts) {
@@ -51,9 +51,9 @@ function parseDigest(md: string): { headerMd: string; categories: CategorySectio
     if (!match) continue
 
     const title = match[1].trim()
-    // Parse "📡 行业动态 (14)" -> label="行业动态", count=14
-    const labelMatch = title.match(/^.+?\s+(.+?)\s*\((\d+)\)$/)
-    const label = labelMatch ? labelMatch[1] : title.replace(/^.+?\s+/, '')
+    // Parse "行业动态 (14)" -> label="行业动态", count=14
+    const labelMatch = title.match(/^(.+?)\s*\((\d+)\)$/)
+    const label = labelMatch ? labelMatch[1].trim() : title
     const count = labelMatch ? parseInt(labelMatch[2]) : 0
 
     const content = part.slice(match[0].length).trim()

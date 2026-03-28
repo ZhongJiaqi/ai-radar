@@ -11,14 +11,14 @@ import type { EnrichedArticle, DigestStats, ContentCategory } from '../types'
 import { pangu } from '../utils/pangu'
 
 const CATEGORY_EMOJI: Record<ContentCategory, string> = {
-  model_release: '🚀',
-  product_tool: '🛠️',
-  research_paper: '📄',
-  industry_news: '📡',
-  funding_ma: '💰',
-  policy_regulation: '⚖️',
-  open_source: '🔧',
-  opinion_insight: '💡',
+  model_release: '',
+  product_tool: '',
+  research_paper: '',
+  industry_news: '',
+  funding_ma: '',
+  policy_regulation: '',
+  open_source: '',
+  opinion_insight: '',
 }
 
 const SCORE_LABEL: Record<number, string> = {
@@ -171,7 +171,7 @@ function buildMarkdown(
   lines.push('')
 
   // Executive Summary
-  lines.push(`## 📌 今日总结`)
+  lines.push(`## 今日总结`)
   lines.push('')
   lines.push(summary)
   lines.push('')
@@ -191,13 +191,12 @@ function buildMarkdown(
       return sumB - sumA
     })
 
-  lines.push(`## 📊 分类速览`)
+  lines.push(`## 分类速览`)
   lines.push('')
 
   for (const [category, catArticles] of sortedCategories) {
-    const emoji = CATEGORY_EMOJI[category as ContentCategory] || '📌'
     const label = categoryLabel(category as ContentCategory)
-    lines.push(`### ${emoji} ${label} (${catArticles.length})`)
+    lines.push(`### ${label} (${catArticles.length})`)
     lines.push('')
 
     for (const a of catArticles.slice(0, 5)) {

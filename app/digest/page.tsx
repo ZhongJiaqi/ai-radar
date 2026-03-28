@@ -29,11 +29,11 @@ async function getData() {
   let summary: string[] = []
   if (digestRes.data?.content_md) {
     const md = digestRes.data.content_md
-    const start = md.indexOf('## 📌 今日总结')
+    const start = md.indexOf('## 今日总结')
     const end = md.indexOf('\n## ', start + 1)
     if (start !== -1) {
       const text = (end === -1 ? md.slice(start) : md.slice(start, end))
-        .replace('## 📌 今日总结', '').trim()
+        .replace('## 今日总结', '').trim()
       summary = text.split('\n').filter((l: string) => l.trim().length > 10)
     }
   }
