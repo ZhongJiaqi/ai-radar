@@ -82,7 +82,7 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
             <div style={{ paddingLeft: 'var(--space-lg)', borderLeft: '1.5px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
               {summary.map((line, i) => (
                 <Reveal key={i} delay={i * 80}>
-                  <p style={{ fontSize: '1rem', lineHeight: 1.9, color: 'var(--text-body)', maxWidth: '72ch' }}>
+                  <p style={{ fontSize: '1rem', lineHeight: 1.9, color: 'var(--text-body)', maxWidth: '100ch' }}>
                     {pangu(line.replace(/^[-•]\s*/, ''))}
                   </p>
                 </Reveal>
