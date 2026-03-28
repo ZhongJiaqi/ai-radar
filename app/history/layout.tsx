@@ -28,7 +28,7 @@ export default async function HistoryLayout({ children }: { children: React.Reac
         <nav className="sticky top-0 z-50 backdrop-blur-md" style={{ background: 'rgba(247,246,243,0.88)', borderBottom: '1px solid var(--border)' }}>
           <div style={{ maxWidth: 'var(--content-wide)', margin: '0 auto', padding: '0 1.5rem', height: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Link href="/digest" style={{ fontSize: 'var(--text-xs)', fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-body)' }}>
-              AI News
+              AI News <span style={{ fontWeight: 300, color: 'var(--text-muted)', letterSpacing: '0.1em' }}>Daily AI Briefing</span>
             </Link>
             <div style={{ display: 'flex', gap: '1.25rem' }}>
               <Link href="/digest" style={{ fontSize: 'var(--text-xs)', fontWeight: 400, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
