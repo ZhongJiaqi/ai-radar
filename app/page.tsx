@@ -2,6 +2,7 @@ import { createPublicClient } from '@/lib/supabase'
 import DashboardClient from './DashboardClient'
 import type { Metadata } from 'next'
 import type { EnrichedArticle } from '@/lib/types'
+import type { ModelRankingRow } from '@/lib/rankings/types'
 
 export const revalidate = 300 // Revalidate every 5 minutes
 
@@ -56,6 +57,27 @@ async function getLatestDigest() {
   }
 }
 
+async function getModelRankings(): Promise<ModelRankingRow[]> {
+  const supabase = createPublicClient()
+  try {
+    const { data, error } = await supabase
+      .from('model_rankings')
+      .select('domain, rank, model_key, model_name, score, score_label, source_name, source_url, captured_at, metadata')
+      .lte('rank', 3)
+      .order('domain', { ascending: true })
+      .order('rank', { ascending: true })
+      .limit(18)
+    if (error) {
+      console.error('Failed to fetch model rankings:', error)
+      return []
+    }
+    return (data || []) as ModelRankingRow[]
+  } catch (err) {
+    console.error('Failed to fetch model rankings:', err)
+    return []
+  }
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = createPublicClient()
   const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
@@ -89,10 +111,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [articles, latestDigest] = await Promise.all([
+  const [articles, latestDigest, modelRankings] = await Promise.all([
     getArticles(),
     getLatestDigest(),
+    getModelRankings(),
   ])
 
-  return <DashboardClient articles={articles} latestDigest={latestDigest} />
+  return <DashboardClient articles={articles} latestDigest={latestDigest} modelRankings={modelRankings} />
 }

@@ -2,25 +2,24 @@
 
 import { useState, useEffect } from 'react'
 
+const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
 export default function NavClock() {
-  const [time, setTime] = useState('')
+  const [dateStr, setDateStr] = useState('')
 
   useEffect(() => {
     function update() {
       const now = new Date()
-      const pad = (n: number) => String(n).padStart(2, '0')
-      setTime(
-        `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
-      )
+      setDateStr(`${MONTH_ABBR[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`)
     }
     update()
-    const id = setInterval(update, 1000)
+    const id = setInterval(update, 60000)
     return () => clearInterval(id)
   }, [])
 
   return (
-    <span className="font-mono text-xs text-[#999] tracking-wide">
-      {time}
+    <span className="text-xs text-gray-400 font-medium tracking-wide">
+      {dateStr}
     </span>
   )
 }

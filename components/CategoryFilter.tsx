@@ -15,31 +15,33 @@ export default function CategoryFilter({ selected, onSelect, counts }: Props) {
   return (
     <div className="flex gap-1.5 overflow-x-auto scrollbar-hide whitespace-nowrap">
       <button
+        type="button"
         onClick={() => onSelect(null)}
-        className={`px-3 py-1 rounded-full text-[0.78rem] font-medium border transition-all ${
+        className={`px-4 py-1.5 min-h-[32px] rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-1 ${
           selected === null
-            ? 'border-black text-black bg-black/[0.04]'
-            : 'border-[#EAEAEA] text-[#666] hover:border-[#666] hover:text-[#171717]'
+            ? 'bg-gray-900 text-white'
+            : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
         }`}
       >
         全部
-        <span className="ml-1.5 text-xs opacity-60">{total}</span>
+        <span className="ml-1.5 text-xs opacity-70">{total}</span>
       </button>
       {CONTENT_CATEGORIES.map(cat => {
         const count = counts[cat] || 0
         if (count === 0) return null
         return (
           <button
+            type="button"
             key={cat}
             onClick={() => onSelect(selected === cat ? null : cat)}
-            className={`px-3 py-1 rounded-full text-[0.78rem] font-medium border transition-all ${
+            className={`px-4 py-1.5 min-h-[32px] rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-1 ${
               selected === cat
-                ? 'border-black text-black bg-black/[0.04]'
-                : 'border-[#EAEAEA] text-[#666] hover:border-[#666] hover:text-[#171717]'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
             }`}
           >
             {categoryLabel(cat)}
-            <span className="ml-1.5 text-xs opacity-60">{count}</span>
+            <span className="ml-1.5 text-xs opacity-70">{count}</span>
           </button>
         )
       })}

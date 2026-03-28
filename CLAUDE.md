@@ -1,12 +1,5 @@
 # Project Contract
 
-## Build And Test
-
-- Install: `npm install`
-- Dev: `npm run dev`
-- Build: `npm run build`
-- Lint: `npm run lint`
-
 ## Architecture Boundaries
 
 - Pages and API routes live in `app/`

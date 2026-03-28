@@ -6,7 +6,7 @@
 
 - **前端**: Next.js 15 (App Router) + TypeScript + Tailwind CSS
 - **数据库**: Supabase (PostgreSQL)
-- **LLM**: Anthropic Claude API (claude-sonnet-4-6)
+- **LLM**: Generic provider layer (Anthropic + OpenAI-compatible endpoints such as DashScope)
 - **部署**: Vercel + Vercel Cron Jobs
 
 ## 数据源覆盖 (26个)
@@ -31,7 +31,8 @@ cp .env.example .env.local
 # NEXT_PUBLIC_SUPABASE_URL
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
 # SUPABASE_SERVICE_ROLE_KEY
-# ANTHROPIC_API_KEY
+# LLM_API_KEY
+# LLM_BASE_URL
 # CRON_SECRET
 ```
 
@@ -41,6 +42,7 @@ cp .env.example .env.local
 
 ```
 supabase/migrations/001_init.sql
+supabase/migrations/004_model_rankings.sql
 ```
 
 ### 3. 安装依赖和启动
@@ -50,6 +52,14 @@ npm install
 npm run dev
 ```
 
+### E2E 前端测试（Playwright）
+
+```bash
+# 先 build，再跑 e2e（会自动起 next start）
+npm run build
+npm run test:e2e
+```
+
 ### 4. 手动触发首次抓取
 
 ```bash
@@ -57,6 +67,7 @@ npm run dev
 curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/crawl
 curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/process
 curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/digest
+curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/rankings
 ```
 
 ## 部署到 Vercel
@@ -68,6 +79,7 @@ curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/dig
    - **每 3 小时**: 抓取新资讯
    - **每 1 小时**: LLM 处理待处理文章
    - **每天 8:00**: 生成每日简报
+   - **每 12 小时**: 更新模型排行榜（公开榜单聚合）
 
 ## 项目结构
 
@@ -76,6 +88,7 @@ ai-radar/
 ├── app/
 │   ├── page.tsx              # Dashboard 首页
 │   ├── DashboardClient.tsx   # 客户端交互
+│   ├── models/               # 模型排行榜页
 │   ├── digest/
 │   │   ├── page.tsx          # 简报列表
 │   │   └── [date]/page.tsx   # 简报详情
@@ -83,6 +96,7 @@ ai-radar/
 │       ├── cron/crawl/       # 爬取 Cron
 │       ├── cron/process/     # 处理 Cron
 │       ├── cron/digest/      # 简报 Cron
+│       ├── cron/rankings/    # 模型排行 Cron
 │       ├── articles/         # 文章查询 API
 │       └── digest/           # 简报 API
 ├── components/               # UI 组件
@@ -105,6 +119,50 @@ ai-radar/
 | `tags` | 最多8个标签 |
 | `importance_score` | 1-10分重要性（10=行业级事件）|
 | `why_it_matters` | 一句话核心洞察 |
+
+## LLM 配置
+
+项目现在统一使用一组共享 LLM 配置：
+
+```bash
+LLM_API_KEY=your-api-key
+LLM_BASE_URL=https://api.anthropic.com
+```
+
+- `process` 和 `digest` 共用同一组 `key/url`
+- 默认不要求配置模型名
+- 如需覆盖默认模型，可额外设置 `LLM_MODEL`
+
+### 常见示例
+
+**Anthropic 官方**
+
+```bash
+LLM_API_KEY=sk-ant-...
+LLM_BASE_URL=https://api.anthropic.com
+```
+
+**阿里云百炼（OpenAI 兼容接口）**
+
+```bash
+LLM_API_KEY=your-dashscope-key
+LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+```
+
+> 兼容说明：代码优先读取 `LLM_*`；如果未设置，会回退兼容旧的 `ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL`。
+
+## GitHub Actions Secrets
+
+GitHub Actions 建议配置以下 secrets：
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `LLM_API_KEY`
+- `LLM_BASE_URL`
+- `LLM_MODEL`（可选）
+
+现有 workflow 已兼容旧 secrets 名称 `ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL`，方便平滑迁移。
 
 ## Twitter API 设置（可选）
 

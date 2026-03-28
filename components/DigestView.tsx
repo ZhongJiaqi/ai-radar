@@ -25,27 +25,23 @@ function renderMarkdown(md: string): string {
 
 export default function DigestView({ markdown, date }: Props) {
   const [copied, setCopied] = useState(false)
-  const html = renderMarkdown(markdown)
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <p className="text-[0.85rem] text-[#666]">{date} 日报</p>
+      <div className="flex items-center justify-between mb-8">
+        <p className="font-mono text-[0.72rem] text-[#BBB] uppercase tracking-widest">{date}</p>
         <button
           onClick={() => {
             navigator.clipboard.writeText(markdown)
             setCopied(true)
             setTimeout(() => setCopied(false), 2000)
           }}
-          className="text-xs text-[#666] hover:text-[#171717] bg-[#FAFAFA] border border-[#EAEAEA] px-3 py-1.5 rounded-lg transition-colors"
+          className="font-mono text-[0.72rem] text-[#777] hover:text-[#111] transition-colors uppercase tracking-widest"
         >
-          {copied ? '已复制' : '复制 Markdown'}
+          {copied ? 'Copied' : 'Copy MD'}
         </button>
       </div>
-      <div
-        className="prose-light max-w-none"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      <div className="prose-light max-w-none" dangerouslySetInnerHTML={{ __html: renderMarkdown(markdown) }} />
     </div>
   )
 }

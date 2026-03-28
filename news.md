@@ -12,6 +12,7 @@
 8. Meta
 9. NVIDIA
 10. Azure AI
+11. Claude Code
 
 ## 个人
 
