@@ -42,8 +42,12 @@ CREATE TABLE IF NOT EXISTS source_health (
 ALTER TABLE job_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE source_health ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "job_runs_public_read" ON job_runs;
+DROP POLICY IF EXISTS "job_runs_service_write" ON job_runs;
 CREATE POLICY "job_runs_public_read" ON job_runs FOR SELECT USING (true);
 CREATE POLICY "job_runs_service_write" ON job_runs FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "source_health_public_read" ON source_health;
+DROP POLICY IF EXISTS "source_health_service_write" ON source_health;
 CREATE POLICY "source_health_public_read" ON source_health FOR SELECT USING (true);
 CREATE POLICY "source_health_service_write" ON source_health FOR ALL USING (true) WITH CHECK (true);

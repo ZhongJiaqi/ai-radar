@@ -13,7 +13,7 @@ const DOMAIN_META: Record<ModelDomain, { zh: string; en: string; hint: string }>
   audio:  { zh: '语音', en: 'Audio',  hint: '语音理解/生成' },
 }
 
-const DOMAIN_ORDER: ModelDomain[] = ['coding', 'math', 'text', 'image', 'video', 'audio']
+const DOMAIN_ORDER: ModelDomain[] = ['coding', 'text', 'image', 'video']
 
 function scoreText(r: Pick<ModelRankingRow, 'score' | 'score_label' | 'metadata' | 'rank'>): string {
   if (typeof r.score === 'number') return `${Math.round(r.score)}`
@@ -87,14 +87,13 @@ export default async function ModelsPage() {
               <div className="px-6 py-5 border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-mono text-[11px] text-gray-400 uppercase tracking-wider mb-1">{meta.en}</p>
                     <h2 className="text-[15px] font-semibold text-gray-900">{meta.zh}</h2>
+                    <p className="text-[13px] text-gray-500 mt-1">{meta.hint}</p>
                   </div>
                   <span className="font-mono text-[11px] text-gray-300">
                     {entries[0]?.score_label || 'Elo'}
                   </span>
                 </div>
-                <p className="text-[13px] text-gray-500 mt-1.5">{meta.hint}</p>
               </div>
 
               {/* Entries */}

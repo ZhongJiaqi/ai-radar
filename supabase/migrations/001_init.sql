@@ -110,12 +110,20 @@ ALTER TABLE processed_articles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_digests      ENABLE ROW LEVEL SECURITY;
 
 -- Public can read everything
+DROP POLICY IF EXISTS "public_read_sources"    ON sources;
+DROP POLICY IF EXISTS "public_read_articles"   ON articles;
+DROP POLICY IF EXISTS "public_read_processed"  ON processed_articles;
+DROP POLICY IF EXISTS "public_read_digests"    ON daily_digests;
 CREATE POLICY "public_read_sources"    ON sources            FOR SELECT USING (true);
 CREATE POLICY "public_read_articles"   ON articles           FOR SELECT USING (true);
 CREATE POLICY "public_read_processed"  ON processed_articles FOR SELECT USING (true);
 CREATE POLICY "public_read_digests"    ON daily_digests      FOR SELECT USING (true);
 
 -- Only service role can write (enforced via SUPABASE_SERVICE_ROLE_KEY in API)
+DROP POLICY IF EXISTS "service_write_sources"    ON sources;
+DROP POLICY IF EXISTS "service_write_articles"   ON articles;
+DROP POLICY IF EXISTS "service_write_processed"  ON processed_articles;
+DROP POLICY IF EXISTS "service_write_digests"    ON daily_digests;
 CREATE POLICY "service_write_sources"    ON sources            FOR ALL USING (auth.role() = 'service_role');
 CREATE POLICY "service_write_articles"   ON articles           FOR ALL USING (auth.role() = 'service_role');
 CREATE POLICY "service_write_processed"  ON processed_articles FOR ALL USING (auth.role() = 'service_role');

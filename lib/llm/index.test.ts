@@ -7,8 +7,6 @@ const ENV_KEYS = [
   'LLM_API_KEY',
   'LLM_BASE_URL',
   'LLM_MODEL',
-  'ANTHROPIC_API_KEY',
-  'ANTHROPIC_BASE_URL',
   'CLAUDE_SMALL_MODEL',
   'CLAUDE_LARGE_MODEL',
 ]
@@ -77,17 +75,16 @@ test('resolves DashScope OpenAI-compatible defaults', () => {
   )
 })
 
-test('falls back to legacy ANTHROPIC_* env vars', () => {
+test('defaults to Anthropic when no base URL set', () => {
   withEnv(
     {
-      ANTHROPIC_API_KEY: 'legacy',
-      ANTHROPIC_BASE_URL: 'https://api.anthropic.com',
+      LLM_API_KEY: 'k',
     },
     () => {
       const cfg = getResolvedLLMConfig('digest')
       assert.equal(cfg.provider, 'anthropic')
       assert.equal(cfg.baseURL, 'https://api.anthropic.com')
-      assert.equal(cfg.apiKey, 'legacy')
+      assert.equal(cfg.apiKey, 'k')
     }
   )
 })

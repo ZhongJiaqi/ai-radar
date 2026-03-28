@@ -18,6 +18,7 @@ function renderMarkdown(md: string): string {
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
     .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
     .replace(/^---$/gm, '<hr>')
+    .replace(/^(.+\| 来源:.+)$/gm, '<p class="source-line">$1</p>')
     .replace(/\n{2,}/g, '</p><p>')
     .replace(/^(?!<[hbpHBP])(.+)$/gm, '$1')
     .split('\n').join('\n')

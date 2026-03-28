@@ -1,6 +1,5 @@
 import { createPublicClient } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import DigestView from '@/components/DigestView'
 import type { Metadata } from 'next'
 
@@ -30,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function DigestPage({ params }: PageProps) {
+export default async function DigestDatePage({ params }: PageProps) {
   const { date } = await params
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) notFound()
@@ -44,27 +43,12 @@ export default async function DigestPage({ params }: PageProps) {
 
   if (!digest) {
     return (
-      <div className="max-w-2xl mx-auto text-center py-24">
+      <div className="text-center py-24">
         <p className="text-sm text-gray-500 mb-2">{date}</p>
-        <p className="text-[15px] text-gray-600 mb-8">该日简报尚未生成</p>
-        <Link href="/" className="text-[13px] text-gray-500 hover:text-gray-900 transition-colors">
-          ← 返回资讯
-        </Link>
+        <p className="text-[15px] text-gray-600">该日简报尚未生成</p>
       </div>
     )
   }
 
-  return (
-    <div className="max-w-2xl mx-auto">
-      <nav className="flex items-center justify-between mb-10 pb-6 border-b border-gray-200">
-        <Link href="/" className="font-mono text-[11px] text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">
-          ← News
-        </Link>
-        <Link href="/digest" className="font-mono text-[11px] text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">
-          Archive →
-        </Link>
-      </nav>
-      <DigestView markdown={digest.content_md} date={date} />
-    </div>
-  )
+  return <DigestView markdown={digest.content_md} date={date} />
 }

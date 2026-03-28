@@ -159,7 +159,7 @@ export default function DashboardClient({ articles, latestDigest, modelRankings 
               查看完整 &rarr;
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+          <div className="space-y-5">
             {domainOrder.map(domain => {
               const meta = domainMeta[domain]
               const top = top1ByDomain.get(domain)
@@ -170,10 +170,12 @@ export default function DashboardClient({ articles, latestDigest, modelRankings 
                     ? `#${(top as any)?.metadata?.arena_math_rank ?? 1}`
                     : '—'
               return (
-                <div key={domain}>
-                  <div className="text-[11px] text-gray-400 tracking-wider mb-2 uppercase">{meta.en}</div>
-                  <div className="text-sm font-medium text-gray-800 truncate">{top?.model_name || '—'}</div>
-                  {top && <div className="font-mono text-[11px] text-gray-400 mt-0.5">{scoreText}</div>}
+                <div key={domain} className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[11px] text-gray-400 tracking-wider mb-1">{meta.zh}</div>
+                    <div className="text-sm font-medium text-gray-800 truncate">{top?.model_name || '—'}</div>
+                  </div>
+                  {top && <div className="font-mono text-[12px] text-gray-400 flex-shrink-0">{scoreText}</div>}
                 </div>
               )
             })}

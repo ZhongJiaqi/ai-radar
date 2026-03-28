@@ -91,16 +91,14 @@ function defaultModelFor(task: LLMTask, provider: LLMProvider, baseURL: string):
 
 function resolveConfig(task: LLMTask): ResolvedConfig {
   const apiKey =
-    trimOrEmpty(process.env.LLM_API_KEY) ||
-    trimOrEmpty(process.env.ANTHROPIC_API_KEY)
+    trimOrEmpty(process.env.LLM_API_KEY)
 
   if (!apiKey) {
-    throw new Error('Missing LLM_API_KEY (or legacy ANTHROPIC_API_KEY)')
+    throw new Error('Missing LLM_API_KEY')
   }
 
   const rawBaseURL =
-    trimOrEmpty(process.env.LLM_BASE_URL) ||
-    trimOrEmpty(process.env.ANTHROPIC_BASE_URL)
+    trimOrEmpty(process.env.LLM_BASE_URL)
 
   const provider = inferProvider(rawBaseURL)
   const baseURL = normalizeBaseURL(rawBaseURL, provider)

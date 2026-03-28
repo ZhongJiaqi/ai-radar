@@ -9,6 +9,13 @@ import { createServiceClient } from '../supabase'
 import { categoryLabel } from '../i18n/categories'
 import type { EnrichedArticle, DigestStats, ContentCategory } from '../types'
 
+/** Insert spaces between CJK and Latin/digit characters (pangu spacing) */
+function pangu(text: string): string {
+  return text
+    .replace(/([\u4e00-\u9fff\u3400-\u4dbf])([A-Za-z0-9])/g, '$1 $2')
+    .replace(/([A-Za-z0-9])([\u4e00-\u9fff\u3400-\u4dbf])/g, '$1 $2')
+}
+
 const CATEGORY_EMOJI: Record<ContentCategory, string> = {
   model_release: '🚀',
   product_tool: '🛠️',
@@ -87,7 +94,7 @@ export async function generateDailyDigest(date: string): Promise<string> {
 
   // Build Markdown digest
   const dateFormatted = format(new Date(date), 'yyyy年M月d日 EEEE', { locale: zhCN })
-  const md = buildMarkdown(dateFormatted, executiveSummary, top, stats)
+  const md = pangu(buildMarkdown(dateFormatted, executiveSummary, top, stats))
 
   // Save to DB
   await supabase.from('daily_digests').upsert({
@@ -108,18 +115,20 @@ async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<st
     )
     .join('\n')
 
-  const prompt = `基于以下今日 AI 资讯，写一段面向 AI 从业者的每日深度分析总结，用中文。
+  const prompt = `你是 AI 行业分析师，面向中国 AI 从业者（产品经理、开发者、创业者）撰写每日要点。
 
-要求：
-- 提炼3-5个最值得关注的要点，每个要点一行
-- 每个要点控制在50-80字，简洁有力
-- 总字数不超过300字
-- 每行开头不要加序号、emoji或符号，直接输出要点内容
+基于以下今日资讯，提炼 3-5 个最值得关注的要点。
+
+写作要求：
+- 每个要点一行，50-80 字，中英文之间加空格
+- 不要复述新闻标题，要分析"这意味着什么"和"从业者该怎么应对"
+- 风格参考下方每条资讯的"核心影响"字段，直接点明对从业者的影响或机会
+- 不加序号、emoji、符号，直接输出要点内容
 - 每个要点之间用换行符分隔
 
 ${articleList}
 
-直接输出内容，每个要点一行。`
+直接输出要点，每个一行。`
 
   const toErrText = (err: unknown): string => {
     if (err && typeof err === 'object') {
@@ -141,7 +150,7 @@ ${articleList}
       prompt,
       maxTokens: 400,
     })
-    if (response.text.trim()) return response.text.trim()
+    if (response.text.trim()) return pangu(response.text.trim())
     throw new Error('LLM returned empty summary')
   } catch (err) {
     lastErr = err
