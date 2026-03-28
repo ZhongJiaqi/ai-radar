@@ -10,7 +10,7 @@ interface DigestEntry {
 export default function DigestSidebar({ digests }: { digests: DigestEntry[] }) {
   const pathname = usePathname()
   const router = useRouter()
-  const currentDate = pathname.match(/\/digest\/(\d{4}-\d{2}-\d{2})/)?.[1] || digests[0]?.date
+  const currentDate = pathname.match(/\/history\/(\d{4}-\d{2}-\d{2})/)?.[1] || digests[0]?.date
 
   return (
     <aside style={{ width: '8.5rem', flexShrink: 0, paddingTop: 'var(--space-sm)' }}>
@@ -23,8 +23,8 @@ export default function DigestSidebar({ digests }: { digests: DigestEntry[] }) {
           return (
             <a
               key={d.date}
-              href={`/digest/${d.date}`}
-              onClick={(e) => { e.preventDefault(); router.push(`/digest/${d.date}`); router.refresh() }}
+              href={`/history/${d.date}`}
+              onClick={(e) => { e.preventDefault(); router.push(`/history/${d.date}`); router.refresh() }}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '0.375rem 0.5rem', borderRadius: '4px',

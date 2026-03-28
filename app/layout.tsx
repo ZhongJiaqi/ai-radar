@@ -63,7 +63,7 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} ${newsreader.variable} ${jetbrainsMono.variable} font-sans bg-[#F7F6F3] text-[#2F3437] min-h-screen`}
       >
-        <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/60 relative">
+        <nav className="root-nav sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/60 relative">
           <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
               <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="#1A1A1A" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -79,10 +79,10 @@ export default function RootLayout({
             <NavClock />
           </div>
         </nav>
-        <main className="max-w-6xl mx-auto px-6 py-10">
+        <main className="root-main max-w-6xl mx-auto px-6 py-10">
           {children}
         </main>
-        <footer className="text-center py-8 font-mono text-[0.68rem] text-gray-400 border-t border-gray-200 mt-8 tracking-widest uppercase">
+        <footer className="root-footer text-center py-8 font-mono text-[0.68rem] text-gray-400 border-t border-gray-200 mt-8 tracking-widest uppercase">
           AI News — Daily AI Briefing
         </footer>
       </body>

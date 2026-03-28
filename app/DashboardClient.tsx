@@ -135,7 +135,7 @@ export default function DashboardClient({ articles, latestDigest, modelRankings 
           <section className="md:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-sm font-semibold text-gray-500">今日要点</h2>
-              <Link href={`/digest/${latestDigest.date}`} className="text-xs text-gray-400 hover:text-gray-800 transition-colors">
+              <Link href={`/history/${latestDigest.date}`} className="text-xs text-gray-400 hover:text-gray-800 transition-colors">
                 完整简报 &rarr;
               </Link>
             </div>

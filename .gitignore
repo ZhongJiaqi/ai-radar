@@ -5,3 +5,5 @@ node_modules/
 *.tsbuildinfo
 tsconfig.tsbuildinfo
 .gstack/
+supabase/.temp/
+test-results/

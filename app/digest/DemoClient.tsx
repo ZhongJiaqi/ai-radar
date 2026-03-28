@@ -52,14 +52,14 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
       {/* Nav */}
       <nav className="sticky top-0 z-50 backdrop-blur-md" style={{ background: 'rgba(247,246,243,0.88)' }}>
         <div style={{ maxWidth: 'var(--content-width)', margin: '0 auto', padding: '0 1.5rem', height: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/demo" style={{ fontSize: 'var(--text-xs)', fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-body)' }}>
+          <Link href="/digest" style={{ fontSize: 'var(--text-xs)', fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-body)' }}>
             AI News
           </Link>
           <div style={{ display: 'flex', gap: '1.25rem' }}>
-            <Link href="/demo" style={{ fontSize: 'var(--text-xs)', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-body)' }}>
+            <Link href="/digest" style={{ fontSize: 'var(--text-xs)', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-body)' }}>
               Digest
             </Link>
-            <Link href="/digest" style={{ fontSize: 'var(--text-xs)', fontWeight: 400, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', transition: 'color 200ms' }}>
+            <Link href="/history" style={{ fontSize: 'var(--text-xs)', fontWeight: 400, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', transition: 'color 200ms' }}>
               History
             </Link>
           </div>
@@ -93,7 +93,7 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
           )}
           <Reveal delay={200}>
             <Link
-              href="/digest"
+              href="/history"
               className="transition-colors duration-200"
               style={{ display: 'inline-block', marginTop: 'var(--space-lg)', fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
