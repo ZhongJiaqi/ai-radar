@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 interface DigestEntry {
   date: string
@@ -10,6 +10,7 @@ interface DigestEntry {
 
 export default function DigestSidebar({ digests }: { digests: DigestEntry[] }) {
   const pathname = usePathname()
+  const router = useRouter()
 
   // Extract current date from pathname: /digest/2026-03-28 or /digest (latest)
   const currentDate = pathname.match(/\/digest\/(\d{4}-\d{2}-\d{2})/)?.[1] || digests[0]?.date
@@ -24,10 +25,15 @@ export default function DigestSidebar({ digests }: { digests: DigestEntry[] }) {
         {digests.map(d => {
           const isActive = d.date === currentDate
           return (
-            <Link
+            <a
               key={d.date}
               href={`/digest/${d.date}`}
-              className={`flex items-center justify-between py-1.5 px-2 rounded-md text-[13px] transition-colors ${
+              onClick={(e) => {
+                e.preventDefault()
+                router.push(`/digest/${d.date}`)
+                router.refresh()
+              }}
+              className={`flex items-center justify-between py-1.5 px-2 rounded-md text-[13px] transition-colors cursor-pointer ${
                 isActive
                   ? 'bg-gray-100 text-gray-900 font-medium'
                   : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
@@ -35,7 +41,7 @@ export default function DigestSidebar({ digests }: { digests: DigestEntry[] }) {
             >
               <span>{d.date.slice(5)}</span>
               <span className="font-mono text-[10px] text-gray-400">{d.total}</span>
-            </Link>
+            </a>
           )
         })}
       </nav>

@@ -1,6 +1,8 @@
 import { createPublicClient } from '@/lib/supabase'
 import DigestSidebar from '@/components/DigestSidebar'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DigestLayout({ children }: { children: React.ReactNode }) {
   const supabase = createPublicClient()
   const { data: digests } = await supabase
