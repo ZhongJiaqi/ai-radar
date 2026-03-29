@@ -49,7 +49,7 @@ body {
   --space-2xl: 5rem;    /* 80px */
 
   /* normalize: layout */
-  --content-width: 700px;
+  --content-width: 960px;
   --content-wide: 880px;
 }
 
