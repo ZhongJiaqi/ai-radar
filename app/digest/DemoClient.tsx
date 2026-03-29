@@ -79,7 +79,7 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
             </h1>
           </Reveal>
           {summary.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-md) var(--space-xl)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-lg) var(--space-xl)' }}>
               {summary.map((line, i) => (
                 <Reveal key={i} delay={i * 80}>
                   <p style={{ fontSize: '0.9375rem', lineHeight: 1.85, color: 'var(--text-body)', maxWidth: '80ch', paddingLeft: 'var(--space-md)', borderLeft: '1.5px solid var(--border)' }}>

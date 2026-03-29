@@ -4,7 +4,7 @@
 
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
-import { generateText } from '../llm'
+import { generateText, generateJson } from '../llm'
 import { createServiceClient } from '../supabase'
 import { categoryLabel } from '../i18n/categories'
 import type { EnrichedArticle, DigestStats, ContentCategory } from '../types'
@@ -53,8 +53,11 @@ export async function generateDailyDigest(date: string): Promise<string> {
     return `# AI 每日简报 ${date}\n\n今日暂无数据。`
   }
 
+  // Deduplicate articles covering the same event via LLM
+  const deduped = await deduplicateArticles(enriched)
+
   // Top 30 for digest — same as frontend display
-  const top = enriched.slice(0, 30)
+  const top = deduped.slice(0, 30)
 
   // Compute stats
   const stats: DigestStats = {
@@ -218,4 +221,77 @@ function buildMarkdown(
   }
 
   return lines.join('\n')
+}
+
+// ---- LLM-assisted deduplication ----
+
+async function deduplicateArticles(articles: EnrichedArticle[]): Promise<EnrichedArticle[]> {
+  if (articles.length <= 5) return articles
+
+  const titleList = articles
+    .map((a, i) => `${i}: ${a.title}`)
+    .join('\n')
+
+  const prompt = `你是一个新闻去重助手。以下是一组 AI 新闻标题，请找出报道同一事件的文章组。
+
+规则：
+- 只有确实报道同一个具体事件的才算重复（例如"OpenAI 发布 GPT-5"和"GPT-5 正式推出"是重复的）
+- 不同角度的评论文章不算重复
+- 泛泛类似的主题不算重复（例如两篇都关于 AI 安全但讨论不同事件，不算重复）
+
+${titleList}
+
+返回严格 JSON 格式，列出重复组（每组包含重复文章的序号数组），没有重复则返回空数组：
+{"groups": [[0, 5, 12], [3, 7]]}`
+
+  try {
+    const response = await generateJson({
+      task: 'digest',
+      prompt,
+      maxTokens: 300,
+    })
+
+    const jsonMatch = response.text.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) return articles
+
+    const parsed = JSON.parse(jsonMatch[0]) as { groups?: number[][] }
+    if (!Array.isArray(parsed.groups) || parsed.groups.length === 0) return articles
+
+    // For each group, keep the article with highest importance_score
+    const removedIndices = new Set<number>()
+    for (const group of parsed.groups) {
+      if (!Array.isArray(group) || group.length < 2) continue
+
+      const validIndices = group.filter(i => typeof i === 'number' && i >= 0 && i < articles.length)
+      if (validIndices.length < 2) continue
+
+      // Find the best article in the group (highest score, then earliest published)
+      let bestIdx = validIndices[0]
+      for (const idx of validIndices.slice(1)) {
+        const current = articles[idx]
+        const best = articles[bestIdx]
+        if (
+          current.importance_score > best.importance_score ||
+          (current.importance_score === best.importance_score &&
+            new Date(current.published_at || 0) < new Date(best.published_at || 0))
+        ) {
+          bestIdx = idx
+        }
+      }
+
+      // Remove all but the best
+      for (const idx of validIndices) {
+        if (idx !== bestIdx) removedIndices.add(idx)
+      }
+    }
+
+    if (removedIndices.size > 0) {
+      console.log(`[Digest] Dedup removed ${removedIndices.size} duplicate articles`)
+    }
+
+    return articles.filter((_, i) => !removedIndices.has(i))
+  } catch (err) {
+    console.warn('[Digest] Dedup failed (non-fatal), using all articles:', err)
+    return articles
+  }
 }

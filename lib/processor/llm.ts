@@ -175,6 +175,7 @@ export async function processUnprocessedArticles(batchSize = 20): Promise<{
           importance_score: result.importance_score,
           why_it_matters: result.why_it_matters,
           model_used: modelUsed,
+          is_fallback: modelUsed === 'fallback',
         })
 
       if (insertError) {
@@ -218,4 +219,94 @@ export async function processUnprocessedArticles(batchSize = 20): Promise<{
   }
 
   return { processed, failed }
+}
+
+// ---- Fallback reprocessor ----
+
+export async function reprocessFallbackArticles(batchSize = 10): Promise<{
+  reprocessed: number
+  failed: number
+}> {
+  const supabase = createServiceClient()
+
+  // Find fallback processed_articles that haven't exceeded retry limit
+  const { data: fallbacks, error } = await supabase
+    .from('processed_articles')
+    .select('id, article_id, reprocess_attempts')
+    .eq('is_fallback', true)
+    .lt('reprocess_attempts', 3)
+    .order('processed_at', { ascending: true })
+    .limit(batchSize)
+
+  if (error) throw new Error(`Fallback fetch error: ${error.message}`)
+  if (!fallbacks || fallbacks.length === 0) return { reprocessed: 0, failed: 0 }
+
+  console.log(`[Reprocess] Found ${fallbacks.length} fallback articles to retry`)
+
+  let reprocessed = 0
+  let failed = 0
+
+  for (const fb of fallbacks) {
+    try {
+      // Get original article data
+      const { data: article } = await supabase
+        .from('articles')
+        .select('title, content, source_slug')
+        .eq('id', fb.article_id)
+        .single()
+
+      if (!article) {
+        // Article was deleted, clean up
+        await supabase.from('processed_articles')
+          .update({ reprocess_attempts: 3 })
+          .eq('id', fb.id)
+        failed++
+        continue
+      }
+
+      const src = SOURCE_CONFIGS.find(s => s.slug === article.source_slug)
+      const sourceCategory = src?.category || 'media'
+
+      const { result, modelUsed } = await processArticle(
+        article.title,
+        article.content || article.title,
+        sourceCategory
+      )
+
+      if (modelUsed === 'fallback') {
+        // Still failing, increment attempt count
+        await supabase.from('processed_articles')
+          .update({ reprocess_attempts: fb.reprocess_attempts + 1 })
+          .eq('id', fb.id)
+        failed++
+        continue
+      }
+
+      // Success — update with real LLM results
+      await supabase.from('processed_articles')
+        .update({
+          summary_zh: result.summary_zh,
+          category: result.category,
+          tags: result.tags,
+          importance_score: result.importance_score,
+          why_it_matters: result.why_it_matters,
+          model_used: modelUsed,
+          is_fallback: false,
+          processed_at: new Date().toISOString(),
+        })
+        .eq('id', fb.id)
+
+      reprocessed++
+      await new Promise(r => setTimeout(r, 200))
+    } catch (err) {
+      console.error(`[Reprocess] Failed for ${fb.id}:`, err)
+      await supabase.from('processed_articles')
+        .update({ reprocess_attempts: fb.reprocess_attempts + 1 })
+        .eq('id', fb.id)
+      failed++
+    }
+  }
+
+  console.log(`[Reprocess] Done: ${reprocessed} reprocessed, ${failed} failed`)
+  return { reprocessed, failed }
 }
