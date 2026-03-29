@@ -2,11 +2,10 @@
 // AI Radar - Daily Digest Generator
 // ======================================================
 
-import { format } from 'date-fns'
-import { zhCN } from 'date-fns/locale'
 import { generateText, generateJson } from '../llm'
 import { createServiceClient } from '../supabase'
 import { categoryLabel } from '../i18n/categories'
+import { getDateRangeCN } from '../utils/time'
 import type { EnrichedArticle, DigestStats, ContentCategory } from '../types'
 import { pangu } from '../utils/pangu'
 
@@ -32,14 +31,18 @@ const SCORE_LABEL: Record<number, string> = {
 export async function generateDailyDigest(date: string): Promise<string> {
   const supabase = createServiceClient()
 
-  // Fetch articles from the past 48h with importance >= 5
-  // This matches the frontend demo page query for consistency
-  const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+  // Fetch articles from the day before (Beijing time 00:00~24:00)
+  // e.g. digest for 2026-03-29 covers 2026-03-28 00:00 ~ 2026-03-29 00:00
+  const [y, m, d] = date.split('-').map(Number)
+  const prevDay = new Date(Date.UTC(y, m - 1, d - 1))
+  const prevDateStr = `${prevDay.getUTCFullYear()}-${String(prevDay.getUTCMonth() + 1).padStart(2, '0')}-${String(prevDay.getUTCDate()).padStart(2, '0')}`
+  const { since, until } = getDateRangeCN(prevDateStr)
 
   const { data: articles, error } = await supabase
     .from('enriched_articles')
     .select('*')
-    .or(`published_at.gte.${since},crawled_at.gte.${since}`)
+    .gte('published_at', since)
+    .lt('published_at', until)
     .gte('importance_score', 5)
     .order('importance_score', { ascending: false })
     .limit(100)
@@ -75,8 +78,7 @@ export async function generateDailyDigest(date: string): Promise<string> {
   const executiveSummary = await generateExecutiveSummary(top)
 
   // Build Markdown digest
-  const dateFormatted = format(new Date(date), 'yyyy年M月d日 EEEE', { locale: zhCN })
-  const md = pangu(buildMarkdown(dateFormatted, executiveSummary, top, stats))
+  const md = pangu(buildMarkdown(since, until, executiveSummary, top, stats))
 
   // Save to DB
   await supabase.from('daily_digests').upsert({
@@ -90,7 +92,7 @@ export async function generateDailyDigest(date: string): Promise<string> {
   return md
 }
 
-async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<string> {
+export async function generateExecutiveSummary(articles: EnrichedArticle[]): Promise<string> {
   const articleList = articles
     .map((a, i) =>
       `${i + 1}. [${SCORE_LABEL[a.importance_score] || ''}] ${a.title}\n   ${a.why_it_matters}`
@@ -156,8 +158,20 @@ ${articleList}
   return fallback
 }
 
+function formatCNTime(utcISO: string): string {
+  const d = new Date(utcISO)
+  const cn = new Date(d.getTime() + 8 * 60 * 60 * 1000)
+  const y = cn.getUTCFullYear()
+  const m = String(cn.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(cn.getUTCDate()).padStart(2, '0')
+  const h = String(cn.getUTCHours()).padStart(2, '0')
+  const min = String(cn.getUTCMinutes()).padStart(2, '0')
+  return `${y}-${m}-${day} ${h}:${min}`
+}
+
 function buildMarkdown(
-  date: string,
+  since: string,
+  until: string,
   summary: string,
   articles: EnrichedArticle[],
   stats: DigestStats
@@ -166,7 +180,8 @@ function buildMarkdown(
 
   // Header
   lines.push(`# AI 每日简报`)
-  lines.push(`## ${date}`)
+  lines.push('')
+  lines.push(`> ${formatCNTime(since)} — ${formatCNTime(until)} (UTC+8)`)
   lines.push('')
 
   // Stats bar

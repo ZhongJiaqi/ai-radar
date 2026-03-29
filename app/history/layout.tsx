@@ -26,7 +26,7 @@ export default async function HistoryLayout({ children }: { children: React.Reac
       `}} />
       <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
         <nav className="sticky top-0 z-50 backdrop-blur-md" style={{ background: 'rgba(247,246,243,0.88)', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ maxWidth: 'var(--content-wide)', margin: '0 auto', padding: '0 1.5rem', height: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ maxWidth: 'var(--content-width)', margin: '0 auto', padding: '0 1.5rem', height: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Link href="/digest" style={{ fontSize: 'var(--text-xs)', fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-body)' }}>
               AI News <span style={{ fontWeight: 300, color: 'var(--text-muted)', letterSpacing: '0.1em' }}>Daily AI Briefing</span>
             </Link>
@@ -41,7 +41,7 @@ export default async function HistoryLayout({ children }: { children: React.Reac
           </div>
         </nav>
 
-        <div style={{ maxWidth: 'var(--content-wide)', margin: '0 auto', padding: 'var(--space-2xl) 1.5rem var(--space-2xl)', display: 'flex', gap: 'var(--space-xl)' }}>
+        <div style={{ maxWidth: 'var(--content-width)', margin: '0 auto', padding: 'var(--space-2xl) 1.5rem var(--space-2xl)', display: 'flex', gap: 'var(--space-xl)' }}>
           <DigestSidebar digests={entries} />
           <main style={{ flex: 1, minWidth: 0 }}>
             {children}

@@ -177,7 +177,7 @@ input[type="range"].score-slider::-webkit-slider-thumb {
 }
 .digest-content p {
   font-size: 0.875rem; color: var(--text-secondary); line-height: 1.8;
-  margin-bottom: 1rem; max-width: 65ch;
+  margin-bottom: 1rem;
 }
 .digest-content a { color: var(--accent); transition: color 200ms ease; }
 .digest-content a:hover { color: var(--accent-hover); text-decoration: underline; text-underline-offset: 3px; }

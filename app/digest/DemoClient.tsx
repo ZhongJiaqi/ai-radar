@@ -124,12 +124,12 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
         {/* ── 今日要点 ── */}
         <section style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-2xl)' }}>
           <Reveal>
-            <p style={{ fontSize: 'var(--text-xs)', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 500, marginBottom: 'var(--space-sm)' }}>
+            <p style={{ fontSize: 'var(--text-sm)', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 500, marginBottom: 'var(--space-xs)' }}>
+              Daily Briefing
+            </p>
+            <p style={{ fontSize: 'var(--text-xs)', letterSpacing: '0.1em', color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', marginBottom: 'var(--space-xl)' }}>
               {digestDate || new Date().toISOString().slice(0, 10)}
             </p>
-            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'var(--text-xl)', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.03em', color: 'var(--text-heading)', marginBottom: 'var(--space-xl)' }}>
-              今日要点
-            </h1>
           </Reveal>
           {summary.length > 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-lg) var(--space-xl)' }}>
