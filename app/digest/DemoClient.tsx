@@ -12,10 +12,24 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(h / 24)}d`
 }
 
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReduced(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return reduced
+}
+
 function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const [show, setShow] = useState(false)
+  const reduced = useReducedMotion()
   useEffect(() => {
+    if (reduced) { setShow(true); return }
     const el = ref.current
     if (!el) return
     const obs = new IntersectionObserver(
@@ -24,15 +38,39 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
     )
     obs.observe(el)
     return () => obs.disconnect()
-  }, [])
+  }, [reduced])
   return (
-    <div ref={ref} style={{
+    <div ref={ref} style={reduced ? {} : {
       opacity: show ? 1 : 0,
-      transform: show ? 'none' : 'translateY(8px)',
-      transition: `opacity 450ms cubic-bezier(0.25,1,0.5,1) ${delay}ms, transform 450ms cubic-bezier(0.25,1,0.5,1) ${delay}ms`,
+      transform: show ? 'none' : 'translateY(10px)',
+      transition: `opacity 500ms cubic-bezier(0.25,1,0.5,1) ${delay}ms, transform 500ms cubic-bezier(0.25,1,0.5,1) ${delay}ms`,
     }}>
       {children}
     </div>
+  )
+}
+
+function ScrollProgress() {
+  const [progress, setProgress] = useState(0)
+  const reduced = useReducedMotion()
+  useEffect(() => {
+    if (reduced) return
+    const onScroll = () => {
+      const h = document.documentElement.scrollHeight - window.innerHeight
+      setProgress(h > 0 ? Math.min(window.scrollY / h, 1) : 0)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [reduced])
+  if (reduced) return null
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, zIndex: 100,
+      width: `${progress * 100}%`, height: '2px',
+      background: 'var(--accent)',
+      opacity: progress > 0.01 ? 0.7 : 0,
+      transition: 'opacity 300ms',
+    }} />
   )
 }
 
@@ -45,21 +83,36 @@ interface Props {
 export default function DemoClient({ articles, summary, digestDate }: Props) {
   const topArticles = articles.slice(0, 5)
   const restArticles = articles.slice(5, 25)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <ScrollProgress />
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 backdrop-blur-md" style={{ background: 'rgba(247,246,243,0.88)' }}>
+      <nav
+        className="sticky top-0 z-50 backdrop-blur-md"
+        style={{
+          background: 'rgba(247,246,243,0.88)',
+          borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
+          transition: 'border-color 300ms',
+        }}
+      >
         <div style={{ maxWidth: 'var(--content-width)', margin: '0 auto', padding: '0 1.5rem', height: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link href="/digest" style={{ fontSize: 'var(--text-xs)', fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-body)' }}>
             AI News <span style={{ fontWeight: 300, color: 'var(--text-muted)', letterSpacing: '0.1em' }}>Daily AI Briefing</span>
           </Link>
           <div style={{ display: 'flex', gap: '1.25rem' }}>
-            <Link href="/digest" style={{ fontSize: 'var(--text-xs)', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-body)' }}>
+            <Link href="/digest" className="nav-link-active" style={{ fontSize: 'var(--text-xs)', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-body)' }}>
               Digest
             </Link>
-            <Link href="/history" style={{ fontSize: 'var(--text-xs)', fontWeight: 400, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', transition: 'color 200ms' }}>
+            <Link href="/history" className="nav-link" style={{ fontSize: 'var(--text-xs)', fontWeight: 400, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
               History
             </Link>
           </div>
@@ -82,7 +135,7 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-lg) var(--space-xl)' }}>
               {summary.map((line, i) => (
                 <Reveal key={i} delay={i * 80}>
-                  <p style={{ fontSize: '0.9375rem', lineHeight: 1.85, color: 'var(--text-body)', maxWidth: '80ch', paddingLeft: 'var(--space-md)', borderLeft: '1.5px solid var(--border)' }}>
+                  <p className="summary-point" style={{ fontSize: '0.9375rem', lineHeight: 1.85, color: 'var(--text-body)', maxWidth: '80ch', paddingLeft: 'var(--space-md)', borderLeft: '1.5px solid var(--border)', transition: 'border-color 250ms cubic-bezier(0.25,1,0.5,1), transform 250ms cubic-bezier(0.25,1,0.5,1)' }}>
                     {pangu(line.replace(/^[-•]\s*/, ''))}
                   </p>
                 </Reveal>
@@ -94,12 +147,10 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
           <Reveal delay={200}>
             <Link
               href="/history"
-              className="transition-colors duration-200"
-              style={{ display: 'inline-block', marginTop: 'var(--space-lg)', fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+              className="history-link"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', marginTop: 'var(--space-lg)', fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}
             >
-              完整简报 →
+              完整简报 <span className="history-arrow" style={{ display: 'inline-block', transition: 'transform 250ms cubic-bezier(0.25,1,0.5,1)' }}>→</span>
             </Link>
           </Reveal>
         </section>
@@ -117,7 +168,7 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xl)' }}>
               {topArticles.map((a, idx) => (
                 <Reveal key={a.id} delay={idx * 60}>
-                  <article className="group" style={{ paddingBottom: 'var(--space-xl)', borderBottom: idx < topArticles.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  <article className="top-story" style={{ paddingBottom: 'var(--space-xl)', borderBottom: idx < topArticles.length - 1 ? '1px solid var(--border)' : 'none', transition: 'transform 300ms cubic-bezier(0.25,1,0.5,1)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.375rem' }}>
                       <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 500, letterSpacing: '0.02em' }}>
                         {a.source_name}
@@ -136,10 +187,8 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
                         href={a.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="transition-colors duration-200"
-                        style={{ color: 'inherit' }}
-                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent-hover)')}
-                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-heading)')}
+                        className="top-story-link"
+                        style={{ color: 'inherit', transition: 'color 200ms cubic-bezier(0.25,1,0.5,1)' }}
                       >
                         {pangu(a.title)}
                       </a>
@@ -176,17 +225,14 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
                     href={a.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group"
+                    className="more-row"
                     style={{
                       display: 'flex', alignItems: 'baseline', gap: '0.75rem',
                       padding: '0.625rem 0',
                       borderBottom: '1px solid var(--border)',
-                      transition: 'opacity 200ms',
                     }}
-                    onMouseEnter={e => { const t = e.currentTarget.querySelector('span'); if (t) t.style.color = 'var(--accent-hover)' }}
-                    onMouseLeave={e => { const t = e.currentTarget.querySelector('span'); if (t) t.style.color = 'var(--text-body)' }}
                   >
-                    <span style={{ flex: 1, minWidth: 0, fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-body)', lineHeight: 1.5 }}>
+                    <span className="more-row-title" style={{ flex: 1, minWidth: 0, fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-body)', lineHeight: 1.5, transition: 'color 200ms' }}>
                       {pangu(a.title)}
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
@@ -196,6 +242,9 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
                           {timeAgo(a.published_at)}
                         </span>
                       )}
+                      <span className="more-row-arrow" style={{ fontSize: 'var(--text-xs)', color: 'var(--text-faint)', opacity: 0, transform: 'translateX(-4px)', transition: 'opacity 200ms, transform 200ms cubic-bezier(0.25,1,0.5,1)' }}>
+                        →
+                      </span>
                     </span>
                   </a>
                 </Reveal>

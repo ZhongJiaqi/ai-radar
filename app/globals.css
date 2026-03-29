@@ -86,6 +86,53 @@ body {
   .article-row, .panel-expand {
     animation: none; opacity: 1; transform: none;
   }
+  .summary-point, .top-story, .more-row, .history-arrow, .more-row-arrow, .nav-link {
+    transition: none !important;
+  }
+}
+
+/* ── Digest micro-interactions ── */
+.summary-point:hover {
+  border-color: var(--accent) !important;
+  transform: translateX(2px);
+}
+
+.top-story:hover {
+  transform: translateX(3px);
+}
+.top-story-link:hover {
+  color: var(--accent-hover) !important;
+}
+
+.history-link {
+  transition: color 200ms;
+}
+.history-link:hover {
+  color: var(--accent) !important;
+}
+.history-link:hover .history-arrow {
+  transform: translateX(3px);
+}
+
+.more-row {
+  transition: background 200ms;
+}
+.more-row:hover {
+  background: rgba(0,0,0,0.015);
+}
+.more-row:hover .more-row-title {
+  color: var(--accent-hover) !important;
+}
+.more-row:hover .more-row-arrow {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+}
+
+.nav-link {
+  transition: color 200ms;
+}
+.nav-link:hover {
+  color: var(--text-body) !important;
 }
 
 /* Hide scrollbar */
