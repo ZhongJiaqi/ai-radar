@@ -1,25 +1,65 @@
-# AI Radar
+# AI News
 
-全球 AI 资讯聚合与可视化平台，帮助 AI 从业者在 3 分钟内了解过去 24 小时最重要的 AI 动态。
+Daily AI Briefing — 每日 AI 简报，帮助 AI 从业者快速了解最重要的 AI 动态。
+
+**线上地址**: https://ai-radar-delta.vercel.app/
 
 ## 技术栈
 
 - **前端**: Next.js 15 (App Router) + TypeScript + Tailwind CSS
 - **数据库**: Supabase (PostgreSQL)
 - **LLM**: Generic provider layer (Anthropic + OpenAI-compatible endpoints such as DashScope)
-- **部署**: Vercel + Vercel Cron Jobs
+- **部署**: Vercel + GitHub Actions Cron
 
-## 数据源覆盖 (26个)
+## 核心功能
 
-**官方**: OpenAI · Anthropic · Google DeepMind · Google AI · Meta AI · xAI · Mistral · NVIDIA · Hugging Face
+| 页面 | 功能 |
+|------|------|
+| `/digest` | Daily Briefing 摘要 + 文章列表（昨天一整天，北京时间） |
+| `/history` | 简报归档，按日期回溯查看 |
+| `/models` | 模型排行榜（编程/文本/图片/视频 4 领域 Top 3） |
 
-**社区/平台**: Hacker News · arXiv · Papers with Code · GitHub Trending · Hugging Face Trending
+## 数据流
 
-**高信号个人**: Karpathy · swyx · Hamel Husain · Lenny Rachitsky · Harrison Chase (LangChain) · Guillermo Rauch · Sam Altman* · Yann LeCun* · Demis Hassabis* · Amjad Masad*
+```
+爬虫 (每6h) → LLM处理 (每3h) → 简报生成 (每天07:07北京时间)
+    ↓              ↓                    ↓
+ 37个数据源    打分/分类/摘要      Daily Briefing + 分类速览
+```
 
-**媒体**: MIT Technology Review · TechCrunch AI · VentureBeat AI
+### 数据源覆盖 (37个)
 
-> *需要 Twitter API Bearer Token
+**官方博客 (10)**: OpenAI · Anthropic · Google DeepMind · Google AI · Meta AI · xAI · Mistral · NVIDIA · Hugging Face · Azure AI
+
+**媒体 (9)**: 36氪 · 量子位 · Ben's Bites · TechCrunch · CNBC · a16z · deeplearning.ai · MIT Technology Review · VentureBeat
+
+**个人/Twitter/YouTube (13)**: Karpathy · swyx · Hamel · Sam Altman · Yann LeCun · Demis Hassabis + 8 个 YouTube 频道
+
+**社区 (3)**: Hacker News · GitHub Trending · Hugging Face Trending
+
+> Twitter 源需要 `TWITTER_BEARER_TOKEN`
+
+### 内容处理
+
+每篇文章经 LLM 处理后生成：
+
+| 字段 | 说明 |
+|------|------|
+| `summary_zh` | 2-3 句中文摘要 |
+| `category` | 8 类之一（模型发布/产品工具/研究论文等） |
+| `tags` | 最多 8 个标签 |
+| `importance_score` | 1-10 分（10=行业级事件） |
+| `why_it_matters` | 一句话核心洞察 |
+
+### 去重机制
+
+1. **URL 唯一约束** — 完全匹配
+2. **标题哈希去重** — 规范化后 SHA256
+3. **LLM 辅助去重** — 简报生成时合并同一事件的报道
+
+### Fallback 自动补全
+
+LLM 处理失败时写入 heuristic 结果并标记 `is_fallback=true`，后续 cron 自动重试补全（最多 3 次）。
 
 ## 快速开始
 
@@ -27,7 +67,7 @@
 
 ```bash
 cp .env.example .env.local
-# 填入以下必要变量：
+# 填入：
 # NEXT_PUBLIC_SUPABASE_URL
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
 # SUPABASE_SERVICE_ROLE_KEY
@@ -36,13 +76,10 @@ cp .env.example .env.local
 # CRON_SECRET
 ```
 
-### 2. 初始化 Supabase 数据库
+### 2. 初始化数据库
 
-在 Supabase SQL Editor 中执行：
-
-```
-supabase/migrations/001_init.sql
-supabase/migrations/004_model_rankings.sql
+```bash
+supabase db push
 ```
 
 ### 3. 安装依赖和启动
@@ -52,122 +89,58 @@ npm install
 npm run dev
 ```
 
-### E2E 前端测试（Playwright）
-
-```bash
-# 先 build，再跑 e2e（会自动起 next start）
-npm run build
-npm run test:e2e
-```
-
 ### 4. 手动触发首次抓取
 
 ```bash
-# 启动后，手动触发一次完整流程（需要在 Supabase 设置好后）：
 curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/crawl
 curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/process
 curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/digest
 curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/rankings
 ```
 
-## 部署到 Vercel
+### E2E 测试
 
-1. 推送代码到 GitHub
-2. 在 Vercel 导入项目
-3. 配置所有环境变量
-4. `vercel.json` 中的 Cron Jobs 会自动生效：
-   - **每 3 小时**: 抓取新资讯
-   - **每 1 小时**: LLM 处理待处理文章
-   - **每天 8:00**: 生成每日简报
-   - **每 12 小时**: 更新模型排行榜（公开榜单聚合）
+```bash
+npm run build
+npm run test:e2e
+```
+
+## 部署
+
+1. 推送到 GitHub，Vercel 自动部署
+2. 配置所有环境变量
+3. Cron Jobs（GitHub Actions + Vercel）：
+   - **每 6 小时**: 抓取新资讯
+   - **每 3 小时**: LLM 处理 + Fallback 补全
+   - **每天 23:07 UTC**: 生成每日简报
+   - **每 12 小时**: 更新模型排行榜
+
+> 所有日期计算统一使用北京时间 (UTC+8)，与服务器时区无关。
+
+## LLM 配置
+
+```bash
+LLM_API_KEY=your-api-key
+LLM_BASE_URL=https://api.anthropic.com
+LLM_MODEL=（可选，覆盖默认模型）
+```
+
+兼容 Anthropic 官方和 OpenAI 兼容接口（如阿里云百炼 DashScope）。
 
 ## 项目结构
 
 ```
 ai-radar/
 ├── app/
-│   ├── page.tsx              # Dashboard 首页
-│   ├── DashboardClient.tsx   # 客户端交互
-│   ├── models/               # 模型排行榜页
-│   ├── digest/
-│   │   ├── page.tsx          # 简报列表
-│   │   └── [date]/page.tsx   # 简报详情
-│   └── api/
-│       ├── cron/crawl/       # 爬取 Cron
-│       ├── cron/process/     # 处理 Cron
-│       ├── cron/digest/      # 简报 Cron
-│       ├── cron/rankings/    # 模型排行 Cron
-│       ├── articles/         # 文章查询 API
-│       └── digest/           # 简报 API
-├── components/               # UI 组件
+│   ├── digest/              # Daily Briefing 主页
+│   ├── history/             # 简报归档
+│   ├── models/              # 模型排行榜
+│   └── api/cron/            # Cron 路由 (crawl/process/digest/rankings)
+├── components/              # UI 组件
 ├── lib/
-│   ├── crawlers/             # 爬虫实现
-│   ├── processor/            # LLM 处理
-│   ├── supabase.ts
-│   └── types.ts
-└── supabase/migrations/      # DB Schema
+│   ├── crawlers/            # 37 个数据源爬虫
+│   ├── processor/           # LLM 处理 + 简报生成
+│   ├── llm/                 # LLM provider 层
+│   └── utils/               # 工具函数 (去重/时间/pangu)
+└── supabase/migrations/     # 数据库 Schema
 ```
-
-## LLM 处理输出
-
-每篇文章经过 Claude 处理后生成：
-
-| 字段 | 说明 |
-|------|------|
-| `summary_zh` | 2-3句中文摘要 |
-| `category` | 8类之一（模型发布/产品工具/研究论文等）|
-| `tags` | 最多8个标签 |
-| `importance_score` | 1-10分重要性（10=行业级事件）|
-| `why_it_matters` | 一句话核心洞察 |
-
-## LLM 配置
-
-项目现在统一使用一组共享 LLM 配置：
-
-```bash
-LLM_API_KEY=your-api-key
-LLM_BASE_URL=https://api.anthropic.com
-```
-
-- `process` 和 `digest` 共用同一组 `key/url`
-- 默认不要求配置模型名
-- 如需覆盖默认模型，可额外设置 `LLM_MODEL`
-
-### 常见示例
-
-**Anthropic 官方**
-
-```bash
-LLM_API_KEY=sk-ant-...
-LLM_BASE_URL=https://api.anthropic.com
-```
-
-**阿里云百炼（OpenAI 兼容接口）**
-
-```bash
-LLM_API_KEY=your-dashscope-key
-LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-```
-
-> 兼容说明：代码优先读取 `LLM_*`；如果未设置，会回退兼容旧的 `ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL`。
-
-## GitHub Actions Secrets
-
-GitHub Actions 建议配置以下 secrets：
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `LLM_API_KEY`
-- `LLM_BASE_URL`
-- `LLM_MODEL`（可选）
-
-现有 workflow 已兼容旧 secrets 名称 `ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL`，方便平滑迁移。
-
-## Twitter API 设置（可选）
-
-监控 Sam Altman、Yann LeCun、Demis Hassabis、Amjad Masad 需要 Twitter API：
-
-1. 申请 [Twitter Developer App](https://developer.twitter.com/en/apps)
-2. 获取 Bearer Token
-3. 添加到环境变量：`TWITTER_BEARER_TOKEN=...`
