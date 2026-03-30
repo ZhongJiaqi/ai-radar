@@ -10,10 +10,21 @@ const parser = new Parser({
 })
 
 const AI_KEYWORDS = [
+  // 通用
   'ai', 'artificial intelligence', 'machine learning', 'deep learning',
-  'llm', 'gpt', 'claude', 'gemini', 'language model', 'neural',
-  'transformer', 'diffusion', 'agent', 'inference', 'training',
+  'neural', 'inference', 'training', 'fine-tune', 'fine tuning',
+  // 模型/架构
+  'llm', 'gpt', 'claude', 'gemini', 'llama', 'deepseek', 'qwen',
+  'grok', 'kimi', 'copilot', 'language model', 'transformer',
+  'diffusion', 'stable diffusion', 'midjourney', 'sora', 'multimodal',
+  // 技术
+  'agent', 'agentic', 'rag', 'embedding', 'reasoning', 'alignment',
+  'rlhf', 'token', 'agi',
+  // 公司/产品
   'openai', 'anthropic', 'mistral', 'nvidia', 'hugging face',
+  'perplexity', 'cursor', 'chatbot',
+  // 中文
+  '大模型', '人工智能', '机器学习', '智能体',
 ]
 
 export function isAIRelated(text: string): boolean {
@@ -31,8 +42,8 @@ export async function crawlRSS(source: SourceConfig): Promise<RawArticle[]> {
         if (!item.link || !item.title) return false
         const pubDate = item.pubDate ? new Date(item.pubDate) : null
         if (pubDate && pubDate < cutoff) return false
-        // For media sources, filter by AI relevance
-        if (source.category === 'media' || source.slug === 'nvidia-ai-blog') {
+        // Filter non-official sources by AI relevance
+        if (source.category !== 'official') {
           return isAIRelated(item.title + ' ' + (item.contentSnippet || ''))
         }
         return true
