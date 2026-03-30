@@ -144,15 +144,6 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
           ) : (
             <p style={{ fontSize: 'var(--text-base)', color: 'var(--text-muted)' }}>暂无数据</p>
           )}
-          <Reveal delay={200}>
-            <Link
-              href="/history"
-              className="history-link"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', marginTop: 'var(--space-lg)', fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}
-            >
-              完整简报 <span className="history-arrow" style={{ display: 'inline-block', transition: 'transform 250ms cubic-bezier(0.25,1,0.5,1)' }}>→</span>
-            </Link>
-          </Reveal>
         </section>
 
         <div style={{ height: '1px', background: 'var(--border)' }} />
@@ -250,6 +241,15 @@ export default function DemoClient({ articles, summary, digestDate }: Props) {
                 </Reveal>
               ))}
             </div>
+            <Reveal delay={200}>
+              <Link
+                href="/history"
+                className="history-link"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', marginTop: 'var(--space-xl)', fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}
+              >
+                完整简报 <span className="history-arrow" style={{ display: 'inline-block', transition: 'transform 250ms cubic-bezier(0.25,1,0.5,1)' }}>→</span>
+              </Link>
+            </Reveal>
           </section>
         )}
       </main>

@@ -217,7 +217,7 @@ function buildMarkdown(
     lines.push(`### ${label} (${catArticles.length})`)
     lines.push('')
 
-    for (const a of catArticles.slice(0, 5)) {
+    for (const a of catArticles) {
       const score = SCORE_LABEL[a.importance_score] || `⚪ ${a.importance_score}/10`
       lines.push(`#### [${a.title}](${a.url})`)
       lines.push(`${score} | 来源: ${a.source_name}${a.author ? ` · ${a.author}` : ''}`)
