@@ -1,17 +1,24 @@
 import { createPublicClient } from '@/lib/supabase'
-import { createServiceClient } from '@/lib/supabase'
-import { getYesterdayRangeCN } from '@/lib/utils/time'
-import { generateExecutiveSummary } from '@/lib/processor/digest'
-import { format } from 'date-fns'
+import { getYesterdayRangeCN, getTodayCN } from '@/lib/utils/time'
+import { generateDailyDigest } from '@/lib/processor/digest'
 import type { EnrichedArticle } from '@/lib/types'
 import DemoClient from './DemoClient'
 
 export const revalidate = 60
 
+function extractSummary(contentMd: string): string[] {
+  const start = contentMd.indexOf('## 今日总结')
+  if (start === -1) return []
+  const end = contentMd.indexOf('\n## ', start + 1)
+  const text = (end === -1 ? contentMd.slice(start) : contentMd.slice(start, end))
+    .replace('## 今日总结', '').trim()
+  return text.split('\n').filter((l: string) => l.trim().length > 10).slice(0, 8)
+}
+
 async function getData() {
   const supabase = createPublicClient()
   const { since, until } = getYesterdayRangeCN()
-  const today = format(new Date(), 'yyyy-MM-dd')
+  const today = getTodayCN()
 
   // 查询昨天一整天（北京时间）的文章
   const articlesRes = await supabase
@@ -33,38 +40,18 @@ async function getData() {
     .single()
 
   let summary: string[] = []
-  if (cached?.content_md) {
-    // 从缓存提取摘要
-    const md = cached.content_md
-    const start = md.indexOf('## 今日总结')
-    const end = md.indexOf('\n## ', start + 1)
-    if (start !== -1) {
-      const text = (end === -1 ? md.slice(start) : md.slice(start, end))
-        .replace('## 今日总结', '').trim()
-      summary = text.split('\n').filter((l: string) => l.trim().length > 10).slice(0, 8)
-    }
-  } else if (articles.length > 0) {
-    // 未命中缓存，实时生成摘要
-    try {
-      const summaryText = await generateExecutiveSummary(articles)
-      summary = summaryText.split('\n').filter((l: string) => l.trim().length > 10).slice(0, 8)
 
-      // 写入缓存（best-effort）
-      const serviceClient = createServiceClient()
-      await serviceClient.from('daily_digests').upsert({
-        date: today,
-        content_md: `## 今日总结\n\n${summaryText}`,
-        top_article_ids: articles.slice(0, 30).map(a => a.id),
-        stats: {
-          total: articles.length,
-          avg_importance: Math.round(
-            articles.reduce((s, a) => s + a.importance_score, 0) / articles.length * 10
-          ) / 10,
-        },
-        generated_at: new Date().toISOString(),
-      }, { onConflict: 'date' })
+  if (cached?.content_md) {
+    summary = extractSummary(cached.content_md)
+  }
+
+  // 缓存不存在或摘要提取失败，实时生成完整 digest
+  if (summary.length === 0 && articles.length > 0) {
+    try {
+      const fullMd = await generateDailyDigest(today)
+      summary = extractSummary(fullMd)
     } catch (err) {
-      console.warn('[Digest] Real-time summary generation failed:', err)
+      console.warn('[Digest] Real-time digest generation failed:', err)
     }
   }
 

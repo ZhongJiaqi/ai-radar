@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateDailyDigest } from '@/lib/processor/digest'
-import { format } from 'date-fns'
+import { getTodayCN } from '@/lib/utils/time'
 
 export const maxDuration = 60
 
@@ -10,9 +10,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Default to today; allow override via ?date=YYYY-MM-DD
+  // Default to today (Beijing time); allow override via ?date=YYYY-MM-DD
   const dateParam = req.nextUrl.searchParams.get('date')
-  const date = dateParam || format(new Date(), 'yyyy-MM-dd')
+  const date = dateParam || getTodayCN()
 
   try {
     console.log(`[CRON] Generating digest for ${date}...`)

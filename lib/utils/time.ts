@@ -22,6 +22,18 @@ export function getDateRangeCN(dateStr: string): { since: string; until: string;
 }
 
 /**
+ * Returns today's date string (YYYY-MM-DD) in Beijing time.
+ */
+export function getTodayCN(): string {
+  const now = new Date()
+  const cnNow = new Date(now.getTime() + CN_OFFSET)
+  const y = cnNow.getUTCFullYear()
+  const m = String(cnNow.getUTCMonth() + 1).padStart(2, '0')
+  const d = String(cnNow.getUTCDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/**
  * Returns yesterday's date range in Beijing time (00:00 ~ 24:00) as UTC ISO strings.
  */
 export function getYesterdayRangeCN(): { since: string; until: string; dateStr: string } {
