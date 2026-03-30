@@ -25,6 +25,7 @@ const AI_KEYWORDS = [
   'perplexity', 'cursor', 'chatbot',
   // 中文
   '大模型', '人工智能', '机器学习', '智能体',
+  'minimax', '智谱', 'glm', 'prompt', '混元', 'hunyuan', 'seedance',
 ]
 
 export function isAIRelated(text: string): boolean {
