@@ -117,7 +117,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     priority: 7,
   },
 
-  // ── Community (4) ──
+  // ── Community (8) ──
   {
     slug: 'hackernews',
     name: 'Hacker News',
@@ -144,6 +144,53 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     url: 'https://huggingface.co/api/trending',
     home_url: 'https://huggingface.co/models?sort=trending',
     priority: 7,
+  },
+
+  // ── Reddit (5) ──
+  {
+    slug: 'reddit-claudeai',
+    name: 'r/ClaudeAI',
+    type: 'rss',
+    category: 'community',
+    url: 'https://www.reddit.com/r/ClaudeAI/.rss',
+    home_url: 'https://www.reddit.com/r/ClaudeAI',
+    priority: 7,
+  },
+  {
+    slug: 'reddit-openai',
+    name: 'r/OpenAI',
+    type: 'rss',
+    category: 'community',
+    url: 'https://www.reddit.com/r/OpenAI/.rss',
+    home_url: 'https://www.reddit.com/r/OpenAI',
+    priority: 7,
+  },
+  {
+    slug: 'reddit-artificial',
+    name: 'r/artificial',
+    type: 'rss',
+    category: 'community',
+    url: 'https://www.reddit.com/r/artificial/.rss',
+    home_url: 'https://www.reddit.com/r/artificial',
+    priority: 6,
+  },
+  {
+    slug: 'reddit-artificialinteligence',
+    name: 'r/ArtificialInteligence',
+    type: 'rss',
+    category: 'community',
+    url: 'https://www.reddit.com/r/ArtificialInteligence/.rss',
+    home_url: 'https://www.reddit.com/r/ArtificialInteligence',
+    priority: 6,
+  },
+  {
+    slug: 'reddit-antiai',
+    name: 'r/antiai',
+    type: 'rss',
+    category: 'community',
+    url: 'https://www.reddit.com/r/antiai/.rss',
+    home_url: 'https://www.reddit.com/r/antiai',
+    priority: 6,
   },
 
   // ── Person — Blogs (4) ──
