@@ -56,11 +56,8 @@ export async function generateDailyDigest(date: string): Promise<string> {
     return `# AI 每日简报 ${date}\n\n今日暂无数据。`
   }
 
-  // Deduplicate articles covering the same event via LLM
-  const deduped = await deduplicateArticles(enriched)
-
-  // Top 30 for digest — same as frontend display
-  const top = deduped.slice(0, 30)
+  // Top 30 for summary (before dedup, matches page.tsx query)
+  const top = enriched.slice(0, 30)
 
   // Compute stats
   const stats: DigestStats = {
@@ -74,11 +71,15 @@ export async function generateDailyDigest(date: string): Promise<string> {
     stats.by_category[a.content_category] = (stats.by_category[a.content_category] || 0) + 1
   }
 
-  // Generate AI executive summary from the same articles shown on frontend
+  // Generate executive summary from full list (before dedup)
   const executiveSummary = await generateExecutiveSummary(top)
 
+  // Deduplicate for markdown article list only
+  const deduped = await deduplicateArticles(enriched)
+
   // Build Markdown digest
-  const md = pangu(buildMarkdown(since, until, executiveSummary, top, stats))
+  const dedupedTop = deduped.slice(0, 30)
+  const md = pangu(buildMarkdown(since, until, executiveSummary, dedupedTop, stats))
 
   // Save to DB
   await supabase.from('daily_digests').upsert({
@@ -104,7 +105,9 @@ export async function generateExecutiveSummary(articles: EnrichedArticle[]): Pro
 基于以下今日资讯，提炼 4-8 个最值得关注的要点。注意：严格控制在 4-8 个，绝对不要超过 8 个。
 
 写作要求：
-- 同一主题的多条资讯必须合并为一个要点，不要重复
+- 每个要点只围绕一个具体事件或趋势，不要把不相关的新闻强行拼在一起
+- 如果多条资讯报道同一事件，合并为一个要点；但不同事件必须分开写
+- 每个要点前后逻辑必须连贯，事件描述和影响分析要对应
 - 每个要点一行，50-80 字，用完整的中文句子，必须有逗号和句号等标点符号
 - 中英文之间加空格（例如"OpenAI 发布"而不是"OpenAI发布"）
 - 不要复述新闻标题，要分析"这意味着什么"和"从业者该怎么应对"

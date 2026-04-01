@@ -176,7 +176,7 @@ input[type="range"].score-slider::-webkit-slider-thumb {
   font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 0.75rem;
 }
 .digest-content p {
-  font-size: 0.875rem; color: var(--text-secondary); line-height: 1.8;
+  font-size: 0.9375rem; color: var(--text-secondary); line-height: 1.8;
   margin-bottom: 1rem;
 }
 .digest-content a { color: var(--accent); transition: color 200ms ease; }
