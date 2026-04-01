@@ -101,9 +101,10 @@ export async function generateExecutiveSummary(articles: EnrichedArticle[]): Pro
 
   const prompt = `你是 AI 行业分析师，面向中国 AI 从业者（产品经理、开发者、创业者）撰写每日要点。
 
-基于以下今日资讯，提炼 3-4 个最值得关注的要点。
+基于以下今日资讯，提炼 4-8 个最值得关注的要点。注意：严格控制在 4-8 个，绝对不要超过 8 个。
 
 写作要求：
+- 同一主题的多条资讯必须合并为一个要点，不要重复
 - 每个要点一行，50-80 字，用完整的中文句子，必须有逗号和句号等标点符号
 - 中英文之间加空格（例如"OpenAI 发布"而不是"OpenAI发布"）
 - 不要复述新闻标题，要分析"这意味着什么"和"从业者该怎么应对"
@@ -137,7 +138,7 @@ ${articleList}
     const response = await generateText({
       task: 'digest',
       prompt,
-      maxTokens: 400,
+      maxTokens: 1200,
     })
     if (response.text.trim()) return pangu(response.text.trim())
     throw new Error('LLM returned empty summary')

@@ -154,7 +154,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     category: 'community',
     url: 'https://www.reddit.com/r/ClaudeAI/.rss',
     home_url: 'https://www.reddit.com/r/ClaudeAI',
-    priority: 7,
+    priority: 6,
   },
   {
     slug: 'reddit-openai',
@@ -163,7 +163,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     category: 'community',
     url: 'https://www.reddit.com/r/OpenAI/.rss',
     home_url: 'https://www.reddit.com/r/OpenAI',
-    priority: 7,
+    priority: 6,
   },
   {
     slug: 'reddit-artificial',
@@ -172,7 +172,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     category: 'community',
     url: 'https://www.reddit.com/r/artificial/.rss',
     home_url: 'https://www.reddit.com/r/artificial',
-    priority: 6,
+    priority: 5,
   },
   {
     slug: 'reddit-artificialinteligence',
@@ -181,7 +181,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     category: 'community',
     url: 'https://www.reddit.com/r/ArtificialInteligence/.rss',
     home_url: 'https://www.reddit.com/r/ArtificialInteligence',
-    priority: 6,
+    priority: 5,
   },
   {
     slug: 'reddit-antiai',
@@ -190,7 +190,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     category: 'community',
     url: 'https://www.reddit.com/r/antiai/.rss',
     home_url: 'https://www.reddit.com/r/antiai',
-    priority: 6,
+    priority: 5,
   },
 
   // ── Person — Blogs (4) ──
