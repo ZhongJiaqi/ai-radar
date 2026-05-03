@@ -235,7 +235,7 @@ export async function reprocessFallbackArticles(batchSize = 10): Promise<{
     .select('id, article_id, reprocess_attempts')
     .eq('is_fallback', true)
     .lt('reprocess_attempts', 3)
-    .order('processed_at', { ascending: true })
+    .order('processed_at', { ascending: false })
     .limit(batchSize)
 
   if (error) throw new Error(`Fallback fetch error: ${error.message}`)
