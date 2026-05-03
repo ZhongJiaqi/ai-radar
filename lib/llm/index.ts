@@ -114,6 +114,47 @@ function resolveConfig(task: LLMTask): ResolvedConfig {
   return { provider, apiKey, baseURL, model }
 }
 
+// LLM_MODEL_CHAIN is a comma-separated list of model IDs to try in order
+// when the primary model returns a quota / free-tier error. The first item
+// is the primary; subsequent items are fallbacks. Whitespace tolerated.
+function resolveModelChain(task: LLMTask): string[] {
+  const raw = trimOrEmpty(process.env.LLM_MODEL_CHAIN)
+  const primary = resolveConfig(task).model
+  if (!raw) return [primary]
+  const chain = raw
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+  // Ensure primary is first; dedupe while preserving order.
+  const seen = new Set<string>()
+  const ordered: string[] = []
+  for (const m of [primary, ...chain]) {
+    if (seen.has(m)) continue
+    seen.add(m)
+    ordered.push(m)
+  }
+  return ordered
+}
+
+// Errors worth swapping models for: free-tier exhaustion, quota,
+// rate limit. We do NOT swap on network or 5xx errors — those are
+// transient and callWithRetry handles them.
+function isQuotaExhaustionError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false
+  const e = err as { status?: number; message?: string }
+  if (e.status === 429) return true
+  if (e.status !== 403) return false
+  const msg = (e.message || '').toLowerCase()
+  return (
+    msg.includes('freetieronly') ||
+    msg.includes('free tier') ||
+    msg.includes('allocationquota') ||
+    msg.includes('exhausted') ||
+    msg.includes('insufficient') ||
+    msg.includes('quota')
+  )
+}
+
 const toErrText = (err: unknown): string => {
   if (err && typeof err === 'object') {
     const anyErr = err as Record<string, unknown>
@@ -216,22 +257,43 @@ async function generateWithOpenAICompatible(config: ResolvedConfig, prompt: stri
 }
 
 async function generate(params: GenerateParams): Promise<GenerateResult> {
-  const config = resolveConfig(params.task)
+  const baseConfig = resolveConfig(params.task)
+  const chain = resolveModelChain(params.task)
+  const errors: string[] = []
 
-  const text = await callWithRetry(async () => {
-    if (config.provider === 'anthropic') {
-      return generateWithAnthropic(config, params.prompt, params.maxTokens)
+  for (let i = 0; i < chain.length; i++) {
+    const config: ResolvedConfig = { ...baseConfig, model: chain[i] }
+    try {
+      const text = await callWithRetry(async () => {
+        if (config.provider === 'anthropic') {
+          return generateWithAnthropic(config, params.prompt, params.maxTokens)
+        }
+        return generateWithOpenAICompatible(config, params.prompt, params.maxTokens)
+      })
+      if (!text) throw new Error('LLM returned empty content')
+      if (i > 0) {
+        console.warn(
+          `[LLM] Falling back to model ${config.model} after ${i} exhausted upstream(s)`
+        )
+      }
+      return {
+        text,
+        modelUsed: `${config.provider}:${config.model}`,
+        provider: config.provider,
+      }
+    } catch (err) {
+      errors.push(`${chain[i]}: ${toErrText(err)}`)
+      // Only try next model on quota / free-tier exhaustion. Other errors
+      // (transient, programming, prompt) bubble up immediately.
+      if (!isQuotaExhaustionError(err) || i === chain.length - 1) throw err
+      console.warn(
+        `[LLM] Model ${chain[i]} exhausted (${(err as { status?: number }).status}), trying ${chain[i + 1]}`
+      )
     }
-    return generateWithOpenAICompatible(config, params.prompt, params.maxTokens)
-  })
-
-  if (!text) throw new Error('LLM returned empty content')
-
-  return {
-    text,
-    modelUsed: `${config.provider}:${config.model}`,
-    provider: config.provider,
   }
+
+  // Unreachable — the loop either returns or throws.
+  throw new Error(`All LLM models exhausted: ${errors.join(' | ')}`)
 }
 
 export async function generateJson(params: GenerateParams): Promise<GenerateResult> {

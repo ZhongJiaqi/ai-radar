@@ -33,6 +33,7 @@ jobs:
       LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
       LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
       LLM_MODEL: ${{ secrets.LLM_MODEL }}
+      LLM_MODEL_CHAIN: ${{ secrets.LLM_MODEL_CHAIN }}
       BATCH_SIZE: ${{ inputs.batch_size || '50' }}
       REPROCESS_BATCH_SIZE: ${{ inputs.reprocess_batch_size || '50' }}
     steps:
