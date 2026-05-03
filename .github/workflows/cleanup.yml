@@ -1,0 +1,38 @@
+name: Retention Cleanup
+
+on:
+  schedule:
+    - cron: '23 4 * * 1'  # Every Monday at 04:23 UTC
+  workflow_dispatch:
+    inputs:
+      article_retention_days:
+        description: 'Article retention in days (default 90)'
+        required: false
+        default: '90'
+      job_runs_retention_days:
+        description: 'job_runs retention in days (default 30)'
+        required: false
+        default: '30'
+
+concurrency:
+  group: cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      ARTICLE_RETENTION_DAYS: ${{ inputs.article_retention_days || '90' }}
+      JOB_RUNS_RETENTION_DAYS: ${{ inputs.job_runs_retention_days || '30' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --no-audit --no-fund
+      - run: npx tsx scripts/cleanup.ts

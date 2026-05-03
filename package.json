@@ -12,7 +12,8 @@
     "crawl": "npx tsx scripts/crawl.ts",
     "process": "npx tsx scripts/process.ts",
     "digest": "npx tsx scripts/digest.ts",
-    "rankings": "npx tsx scripts/rankings.ts"
+    "rankings": "npx tsx scripts/rankings.ts",
+    "cleanup": "npx tsx scripts/cleanup.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
