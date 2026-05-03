@@ -2,10 +2,17 @@ import Parser from 'rss-parser'
 import type { RawArticle } from '../types'
 import type { SourceConfig } from '../types'
 
+// Real-browser-style UA — many feeds (Substack, gwern, Cloudflare-fronted
+// blogs) block obvious bot UAs with 403. Keep an explicit identifier in the
+// suffix so server admins can still attribute traffic.
 const parser = new Parser({
   timeout: 15000,
   headers: {
-    'User-Agent': 'AI-Radar/1.0 (+https://github.com/ai-radar)',
+    'User-Agent':
+      'Mozilla/5.0 (compatible; AI-News-Radar/1.0; +https://github.com/ZhongJiaqi/ai-news-radar)',
+    Accept:
+      'application/rss+xml, application/atom+xml, application/xml;q=0.9, */*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
   },
 })
 

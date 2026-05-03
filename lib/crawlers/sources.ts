@@ -15,15 +15,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     home_url: 'https://openai.com/blog',
     priority: 10,
   },
-  {
-    slug: 'anthropic-blog',
-    name: 'Anthropic Blog',
-    type: 'rss',
-    category: 'official',
-    url: 'https://www.anthropic.com/rss.xml',
-    home_url: 'https://www.anthropic.com/news',
-    priority: 10,
-  },
+  // anthropic-blog removed: anthropic.com no longer publishes an RSS feed.
   {
     slug: 'deepmind-blog',
     name: 'Google DeepMind Blog',
@@ -42,15 +34,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     home_url: 'https://blog.google/technology/ai',
     priority: 9,
   },
-  {
-    slug: 'meta-ai-blog',
-    name: 'Meta AI Blog',
-    type: 'rss',
-    category: 'official',
-    url: 'https://ai.meta.com/blog/rss/',
-    home_url: 'https://ai.meta.com/blog',
-    priority: 9,
-  },
+  // meta-ai-blog removed: ai.meta.com/blog no longer exposes an RSS feed.
   {
     slug: 'nvidia-ai-blog',
     name: 'NVIDIA AI Blog',
@@ -69,15 +53,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     home_url: 'https://huggingface.co/blog',
     priority: 9,
   },
-  {
-    slug: 'xai-blog',
-    name: 'xAI Blog',
-    type: 'rss',
-    category: 'official',
-    url: 'https://x.ai/blog/rss.xml',
-    home_url: 'https://x.ai/blog',
-    priority: 9,
-  },
+  // xai-blog removed: x.ai is fronted by Cloudflare and blocks all bot UAs.
   {
     slug: 'google-gemini-blog',
     name: 'Google Gemini Blog',
@@ -217,7 +193,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     name: 'Hamel Husain',
     type: 'rss',
     category: 'person',
-    url: 'https://hamel.dev/feed.xml',
+    url: 'https://hamel.dev/index.xml',
     home_url: 'https://hamel.dev',
     priority: 8,
   },
@@ -277,7 +253,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     name: 'Anthropic (YouTube)',
     type: 'rss',
     category: 'person',
-    url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCBXjHRBbVILc0FeOMBzqLtA',
+    url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCrDwWp7EBBv4NwvScIpBDOA',
     home_url: 'https://www.youtube.com/@AnthropicAI',
     priority: 8,
   },
@@ -295,7 +271,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     name: 'No Priors Podcast (YouTube)',
     type: 'rss',
     category: 'person',
-    url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCkMGEz2gMOq0DFTL0JHYmvQ',
+    url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCSI7h9hydQ40K5MJHnCrQvw',
     home_url: 'https://www.youtube.com/@NoPriorsPodcast',
     priority: 7,
   },
@@ -304,7 +280,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     name: 'South Park Commons (YouTube)',
     type: 'rss',
     category: 'person',
-    url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCgPxR0M-aN3bJMGqgLXlS0g',
+    url: 'https://www.youtube.com/feeds/videos.xml?channel_id=UCNT5auOEW5CzgngC8oE1nMA',
     home_url: 'https://www.youtube.com/@SouthParkCommons',
     priority: 6,
   },
@@ -337,15 +313,7 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
   },
 
   // ── Newsletter RSS (5) ──
-  {
-    slug: 'bens-bites',
-    name: "Ben's Bites",
-    type: 'rss',
-    category: 'media',
-    url: 'https://bensbites.beehiiv.com/feed',
-    home_url: 'https://bensbites.beehiiv.com',
-    priority: 8,
-  },
+  // bens-bites removed: bensbites.co RSS gates content behind a subscription HTML page.
   {
     slug: 'ainews-smol',
     name: 'AI News (smol.ai)',
@@ -355,24 +323,8 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
     home_url: 'https://buttondown.com/ainews',
     priority: 7,
   },
-  {
-    slug: 'a16z-blog',
-    name: 'a16z Blog',
-    type: 'rss',
-    category: 'media',
-    url: 'https://a16z.com/feed/',
-    home_url: 'https://a16z.com',
-    priority: 7,
-  },
-  {
-    slug: 'deeplearning-ai',
-    name: 'deeplearning.ai (The Batch)',
-    type: 'rss',
-    category: 'media',
-    url: 'https://www.deeplearning.ai/the-batch/feed/',
-    home_url: 'https://www.deeplearning.ai/the-batch',
-    priority: 8,
-  },
+  // a16z-blog removed: a16z.com/feed returns 404 — RSS appears intentionally disabled.
+  // deeplearning-ai removed: deeplearning.ai/the-batch RSS endpoints return 5xx reliably.
 
   // ── Media (5) ──
   {
@@ -1036,11 +988,11 @@ export const SOURCE_CONFIGS: SourceConfig[] = [
   },
   {
     slug: 'blog-worksonmymachine-substack-com',
-    name: 'worksonmymachine.substack.com',
+    name: 'worksonmymachine.ai',
     type: 'rss',
     category: 'person',
-    url: 'https://worksonmymachine.substack.com/feed',
-    home_url: 'https://worksonmymachine.substack.com',
+    url: 'https://worksonmymachine.ai/feed',
+    home_url: 'https://worksonmymachine.ai',
     priority: 6,
   },
   {
